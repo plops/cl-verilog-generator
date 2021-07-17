@@ -4,16 +4,3 @@
 sudo dnf install yosys verilator
 #+end_example
 - https://symbiyosys.readthedocs.io/en/latest/install.html
-
-- verilog code beautifier
-#+begin_example
-git clone https://github.com/thomasrussellmurphy/istyle-verilog-formatter
-cd istyle-verilog-formatter
-sudo cp bin/release/iStyle /usr/local/
-
-#+end_example
-
-- use code formatter:
-  #+begin_example
-iStyle --style=gnu 
-  #+end_example

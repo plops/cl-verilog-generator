@@ -13,12 +13,11 @@
 	  #:write-source)))
 ;(setf *features* (union *features* '(:generic-c)))
 ;(setf *features* (set-difference *features* '(:generic-c)))
-(in-package :cl-cpp-generator2)
+(in-package :cl-verilog-generator)
 
 (setf (readtable-case *readtable*) :invert)
 
 (defparameter *file-hashes* (make-hash-table))
-(defparameter *auto-keyword* "auto")
 
 (defun write-source (name code &key
 				 (dir (user-homedir-pathname))
