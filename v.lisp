@@ -45,17 +45,9 @@
 	;; header reordering can affect compilation performance
 	;; FIXME: figure out how to prevent that
        (when format
-	 (sb-ext:run-program "/usr/bin/clang-format"
-			     (list "-i"  (namestring fn)
-				   ;; "-style='{PenaltyReturnTypeOnItsOwnLine: 100000000}'"
+	 (sb-ext:run-program "/usr/local/bin/iStyle"
+			     (list "--style=gnu"  (namestring fn)
 				   )))))))
-
-;; http://clhs.lisp.se/Body/s_declar.htm
-;; http://clhs.lisp.se/Body/d_type.htm
-
-;; go through the body until no declare anymore
-
-
 
   ;; (declare (type int a b) (type float c) 
   ;; (declare (values int &optional))

@@ -4,3 +4,13 @@
 sudo dnf install yosys verilator
 #+end_example
 - https://symbiyosys.readthedocs.io/en/latest/install.html
+
+- verilog operators
+|        |                       |
+| +,-    | addition, subtraction |
+| <<, >> | shift                 |
+| -      | negation              |
+| ?:     | tertiary              |
+| ~      | bit-wise negation     |
+| ^      | bit-wise xor          |
+|        |                       |
