@@ -16,11 +16,11 @@ iStyle --style=gnu
 
 * Building blocks to make s-expression language easy to use
 
-|           |   |                                                                                               |        |
-| indent    |   | prefix with absolute number of tabs                                                           |        |
-| rindent   |   | prefix with relative number of tabs                                                           |        |
-| comments  |   | one or more full line comments                                                                |        |
-| comment   |   | comment behind column 80 or after the last character of the current line, whatever is largest |        |
-| semicolon |   | suffix line with a semicolon if its last character is no semicolon                            |        |
-| "string"  |   | write a string in verilog, except if it is a function call, e.g. ("                           | " a b) |
-|           |   |                                                                                               |        |
+|           |   |                                                                                               |   |
+| indent    |   | prefix with absolute number of tabs                                                           |   |
+| rindent   |   | prefix with relative number of tabs                                                           |   |
+| comments  |   | one or more full line comments                                                                |   |
+| comment   |   | comment behind column 80 or after the last character of the current line, whatever is largest |   |
+| semicolon |   | suffix line with a semicolon if its last character is no semicolon                            |   |
+| "string"  |   | write a string in verilog, except if it is a function call, e.g. ("\pipe" a b)                |   |
+|           |   |                                                                                               |   |
