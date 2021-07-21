@@ -23,3 +23,7 @@ sudo dnf install yosys verilator
 |----------------+------------------------+---|
 | *              | multiplication         |   |
 | /, %           | division, remainder    |   |
+
+- https://github.com/YosysHQ/fpga-toolchain
+- https://tomverbeure.github.io/2020/08/08/CXXRTL-the-New-Yosys-Simulation-Backend.html
+ - https://github.com/tomverbeure/cxxrtl_eval
