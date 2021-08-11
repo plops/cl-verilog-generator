@@ -66,9 +66,6 @@
 					 :if-exists :supersede
 					 :if-does-not-exist :create)
 			(write-sequence code-str s))
-		      ;; https://travisdowns.github.io/blog/2019/11/19/toupper.html
-		      ;; header reordering can affect compilation performance
-		      ;; FIXME: figure out how to prevent that
 		      (when format
 			(sb-ext:run-program "/usr/local/bin/iStyle"
 					    (list "--style=gnu"  (namestring fn)
