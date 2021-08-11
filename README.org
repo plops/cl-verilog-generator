@@ -24,3 +24,8 @@ iStyle --style=gnu
 | semicolon |   | suffix line with a semicolon if its last character is no semicolon                            |   |
 | "string"  |   | write a string in verilog, except if it is a function call, e.g. ("\pipe" a b)                |   |
 |           |   |                                                                                               |   |
+
+* Internal helpers
+
+|        |   |
+| suffix |  string to be injected before newline |
