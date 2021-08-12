@@ -1,4 +1,4 @@
-(asdf:defsystem cl-cpp-generator2
+(asdf:defsystem cl-verilog-generator
     :version "0"
     :description "Emit Verilog code"
     :maintainer " <kielhorn.martin@gmail.com>"

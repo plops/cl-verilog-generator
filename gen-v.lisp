@@ -51,7 +51,7 @@
 					       (format t))
 		(let* ((fn (merge-pathnames (format nil (string "~a") name)
 					    dir))
-		       (code-str (emit-c :code code :header-only nil))
+		       (code-str (emit-v :code code))
 		       (fn-hash (sxhash fn))
 		       (code-hash (sxhash code-str)))
 		  (multiple-value-bind (old-code-hash exists) (gethash fn-hash *file-hashes*)
@@ -70,18 +70,55 @@
 			(sb-ext:run-program "/usr/local/bin/iStyle"
 					    (list "--style=gnu"  (namestring fn)
 						  ))))))))
-	     (defun test1 (a)
-		(+ a 3))
-	      (defun test2 (a &optional b (c 4))
-		(let* ((q (* b c))
-		      (p  (* q q))) (+ a 3 b p c)))
-	      (test2 3 4)
-	      (defun test3 (a &key b (c 4))
-		(let ((q (* 2 (string "b")))
-		      (p (+ b c)))
-		  (+ a 3 (* q p))))
 
-	      (test3 1 :b 3)
+	     (defun emit-v (&key
+			      code
+			      (level 0)
+			      suffix)
+	       (labels ((emit (code &key (dl 0) suffix)
+			(emit-v :code code
+				:level (+ dl level)
+				:suffix suffix))
+			(emits (code &key (dl 0) suffix)
+			  (if (listp code)
+			      (mapcar #'(lambda (x) (emit x
+							 :dl dl
+							 :suffix suffix))
+				      code)
+			      (emit code
+				       :dl dl
+				       :suffix suffix))))
+		 (if code
+		     (if (listp code)
+			 (case (car code)
+			   (comma (let ((args (cdr code)))
+				    (format nil "~{~a~^, ~}" (emits args))))
+			   (paren (let ((args (cdr code)))
+				    (format nil "(~{~a~^, ~})" (emits args))))
+			   (t (destructuring-bind (name &rest args) code
+				(if (listp name)
+				    (progn
+				      ;; lambda call
+				      "lambda call not supported"
+				      )
+				    (progn
+				      (format nil "~a~a"
+					      (emit name)
+					      (emit `(paren ,@args))))))))
+			 (cond
+			   ((keywordp code)
+			    (format nil "kw_~a" code))
+			   ((symbolp code)
+			    (format nil "~a" code))
+			   ((stringp code)
+			    (format nil "~a" code))
+			   ((numberp code)
+			    (cond
+			      ((integerp code)
+			       (format nil "~a" code))
+			      (t
+			       "float not supported")))))
+		     "")))
 	      
 	     
 	     
