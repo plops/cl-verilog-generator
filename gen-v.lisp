@@ -97,14 +97,10 @@
 				    (format nil "(~{~a~^, ~})" (emits args))))
 			   (t (destructuring-bind (name &rest args) code
 				(if (listp name)
-				    (progn
-				      ;; lambda call
-				      "lambda call not supported"
-				      )
-				    (progn
-				      (format nil "~a~a"
-					      (emit name)
-					      (emit `(paren ,@args))))))))
+				    "lambda call not supported"
+				    (format nil "~a~a"
+					    (emit name)
+					    (emit `(paren ,@args)))))))
 			 (cond
 			   ((keywordp code)
 			    (format nil "kw_~a" code))
