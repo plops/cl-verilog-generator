@@ -90,17 +90,24 @@
 				       :suffix suffix))))
 		 (if code
 		     (if (listp code)
-			 (case (car code)
-			   (comma (let ((args (cdr code)))
-				    (format nil "~{~a~^, ~}" (emits args))))
-			   (paren (let ((args (cdr code)))
-				    (format nil "(~{~a~^, ~})" (emits args))))
-			   (t (destructuring-bind (name &rest args) code
-				(if (listp name)
-				    "lambda call not supported"
-				    (format nil "~a~a"
-					    (emit name)
-					    (emit `(paren ,@args)))))))
+			 ,(flet ((row (body)
+				     `(destructuring-bind (name &rest args) code
+					(with-output-to-string (s)
+					  (flet ((out (cmd &rest rest)
+						   "`(format s cmd ,@rest)"
+						   ))
+					   ,body)))))
+			   `(case (car code)
+			     (comma
+			      ,(row `(out "~{~a~^, ~}" (emit args))))
+			     (paren
+			      ,(row `(out "(~{~a~^, ~})" (emit args))))
+			     (t ,(row `(if (listp name)
+				      "lambda call not supported"
+				      (out "~a~a"
+					      (emit name)
+					      (emit (append '(paren) args)))))
+			      )))
 			 (cond
 			   ((keywordp code)
 			    (format nil "kw_~a" code))
