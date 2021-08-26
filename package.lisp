@@ -1,4 +1,4 @@
-(defpackage :cl-cpp-generator2
+(defpackage :cl-verilog-generator
   (:use :cl
 	:alexandria)
   (:export

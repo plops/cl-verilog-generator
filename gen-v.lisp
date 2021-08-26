@@ -21,7 +21,7 @@
   (let* (
 	 (code
 	   `(toplevel
-	     (in-package :cl-verilog-generator)
+	     "(in-package :cl-verilog-generator)"
 	     (setf
 	       _code_git_version
 	       (string ,(let ((str (with-output-to-string (s)
@@ -67,8 +67,8 @@
 					 :if-does-not-exist :create)
 			(write-sequence code-str s))
 		      (when format
-			(sb-ext:run-program "/usr/local/bin/iStyle"
-					    (list "--style=gnu"  (namestring fn)
+			("sb-ext:run-program" (string "/usr/bin/iStyle")
+					    (list (string "--style=gnu")  (namestring fn)
 						  ))))))))
 
 	     (defun emit-v (&key
@@ -95,36 +95,48 @@
 					(with-output-to-string (s)
 					  (flet ((out (cmd &rest rest)
 						   "`(format s cmd ,@rest)"
-						   ))
+						   )
+						 (outsemiln (cmd &rest rest)
+						   (let ((cmd2 (concatenate 'string cmd (format nil (string "; // ~a~%" suffix)))))
+						     "`(format s cmd2 ,@rest)")
+						   )
+						 (outln (cmd &rest rest)
+						   (let ((cmd2 (concatenate 'string cmd (format nil (string " // ~a~%" suffix)))))
+						     "`(format s cmd2 ,@rest)")
+						   )
+						 )
 					   ,body)))))
 			   `(case (car code)
 			     (comma
-			      ,(row `(out "~{~a~^, ~}" (emit args))))
+			      ,(row `(out (string "~{~a~^, ~}") (emit args))))
 			     (paren
-			      ,(row `(out "(~{~a~^, ~})" (emit args))))
+			      ,(row `(out (string "(~{~a~^, ~})") (emit args))))
+			     (space
+			      ,(row `(out (string "~{~a~^, ~}") (emit args))))
 			     (t ,(row `(if (listp name)
-				      "lambda call not supported"
-				      (out "~a~a"
+				      (string "lambda call not supported")
+				      (out (string "~a~a")
 					      (emit name)
-					      (emit (append '(paren) args)))))
+					      (emit "`(paren ,@args)"))))
 			      )))
 			 (cond
 			   ((keywordp code)
-			    (format nil "kw_~a" code))
+			    (format nil (string "kw_~a") code))
 			   ((symbolp code)
-			    (format nil "~a" code))
+			    (format nil (string "~a") code))
 			   ((stringp code)
-			    (format nil "~a" code))
+			    (format nil (string "~a") code))
 			   ((numberp code)
 			    (cond
 			      ((integerp code)
-			       (format nil "~a" code))
+			       (format nil (string "~a") code))
 			      (t
-			       "float not supported")))))
-		     "")))
+			       (string "float not supported"))))))
+		     (string ""))))
 	      
 	     
 	     
 	     )))
-    (write-source (format nil "~a/~a" *source* *code-file*) code)
-    ))
+    (cl-commonlisp-generator:write-source
+     (format nil "~a/~a" *source* *code-file*)
+     code)))
