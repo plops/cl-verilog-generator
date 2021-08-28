@@ -91,34 +91,47 @@
 		 (if code
 		     (if (listp code)
 			 ,(flet ((row (body)
-				     `(destructuring-bind (name &rest args) code
-					(with-output-to-string (s)
-					  (flet ((out (cmd &rest rest)
-						   "`(format s cmd ,@rest)"
-						   )
-						 (outsemiln (cmd &rest rest)
-						   (let ((cmd2 (concatenate 'string cmd (format nil (string "; // ~a~%" suffix)))))
-						     "`(format s cmd2 ,@rest)")
-						   )
-						 (outln (cmd &rest rest)
-						   (let ((cmd2 (concatenate 'string cmd (format nil (string " // ~a~%" suffix)))))
-						     "`(format s cmd2 ,@rest)")
-						   )
-						 )
-					   ,body)))))
-			   `(case (car code)
-			     (comma
-			      ,(row `(out (string "~{~a~^, ~}") (emit args))))
-			     (paren
-			      ,(row `(out (string "(~{~a~^, ~})") (emit args))))
-			     (space
-			      ,(row `(out (string "~{~a~^, ~}") (emit args))))
-			     (t ,(row `(if (listp name)
-				      (string "lambda call not supported")
-				      (out (string "~a~a")
-					      (emit name)
-					      (emit "`(paren ,@args)"))))
-			      )))
+				   `(destructuring-bind (name &rest args) code
+				      (with-output-to-string (s)
+					(macrolet ((out (cmd &rest rest)
+						     "`(format s ,cmd ,@rest)")
+						   (outsemiln (cmd &rest rest)
+						     (let ((cmd2 (concatenate 'string cmd
+									      (if (string= suffix (string ""))
+										  (string ";")
+										  (format nil (string "; // ~a~%")  suffix)))))
+						       "`(format s cmd2 ,@rest)")
+						     ))
+					  #+nil (outln (cmd &rest rest)
+						       (let ((cmd2 (concatenate 'string cmd (format nil (string " // ~a~%")  suffix))))
+							 "(format s cmd2 ,@rest)")
+						       )
+					  
+					  ,body)))))
+			    `(case (car code)
+			       (comma
+				#+nil
+				(format nil (string "~{~a~^, ~}") (emits (cdr code))
+					;(mapcar #'emit (cdr code))
+					)
+				,(row "bla" #+nil `(out (string "~{~a~^, ~}") (emits args))))
+			       (paren
+				,(row `(out (string "(~{~a~^, ~})") (emits args))))
+			       (space
+				,(row `(out (string "~{~a~^, ~}") (emits args))))
+			       (module
+				,(row `(destructuring-bind (name &rest params) args
+					 (outsemiln (string "module ~a ~a")
+						    (emit name)
+						    (emit `(paren ,@params))))))
+			       #+nil (do0
+				      ,(row `(outsemiln (string "~{~a~^ ~}") (emit args))))
+			       (t ,(row `(if (listp name)
+					     (string "lambda call not supported")
+					     (out (string "~a~a")
+						  (emit name)
+						  (emit "`(paren ,@args)"))))
+				)))
 			 (cond
 			   ((keywordp code)
 			    (format nil (string "kw_~a") code))

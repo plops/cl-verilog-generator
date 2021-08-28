@@ -1,3 +1,4 @@
+
 - https://zipcpu.com/tutorial/
 - install some code on fedora
 #+begin_example
@@ -27,3 +28,6 @@ sudo dnf install yosys verilator
 - https://github.com/YosysHQ/fpga-toolchain
 - https://tomverbeure.github.io/2020/08/08/CXXRTL-the-New-Yosys-Simulation-Backend.html
  - https://github.com/tomverbeure/cxxrtl_eval
+
+
+- https://github.com/sipeed/TangNano-4K-example/tree/main/led_test/project
