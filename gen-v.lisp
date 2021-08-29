@@ -22,26 +22,30 @@
 	 (code
 	   `(toplevel
 	     "(in-package :cl-verilog-generator)"
-	     (setf
-	       _code_git_version
+	     (defparameter
+		 _code_git_version
 	       (string ,(let ((str (with-output-to-string (s)
 				     (sb-ext:run-program "/usr/bin/git" (list "rev-parse" "HEAD") :output s))))
 			  (subseq str 0 (1- (length str)))))
-	       _code_repository (string ,(format nil "https://github.com/plops/cl-verilog-generator/tree/master/gen-v.lisp"))
-	       _code_generation_time
-	       (string ,(multiple-value-bind
-			      (second minute hour date month year day-of-week dst-p tz)
-			    (get-decoded-time)
-			  (declare (ignorable dst-p))
-			  (format nil "~2,'0d:~2,'0d:~2,'0d of ~a, ~d-~2,'0d-~2,'0d (GMT~@d)"
-				  hour
-				  minute
-				  second
-				  (nth day-of-week *day-names*)
-				  year
-				  month
-				  date
-				  (- tz)))))
+	       
+	       )
+	     (defparameter _code_generation_time
+		 (string ,(multiple-value-bind
+				(second minute hour date month year day-of-week dst-p tz)
+			      (get-decoded-time)
+			    (declare (ignorable dst-p))
+			    (format nil "~2,'0d:~2,'0d:~2,'0d of ~a, ~d-~2,'0d-~2,'0d (GMT~@d)"
+				    hour
+				    minute
+				    second
+				    (nth day-of-week *day-names*)
+				    year
+				    month
+				    date
+				    (- tz)))))
+	     (defparameter
+		 _code_repository (string ,(format nil "https://github.com/plops/cl-verilog-generator/tree/master/gen-v.lisp")))
+	     
 	     (setf (readtable-case *readtable*) :invert)
 	     (toplevel
 	      (defparameter *file-hashes* (make-hash-table))
@@ -96,11 +100,13 @@
 					(macrolet ((out (cmd &rest rest)
 						     "`(format s ,cmd ,@rest)")
 						   (outsemiln (cmd &rest rest)
-						     (let ((cmd2 (concatenate 'string cmd
-									      (if (string= suffix (string ""))
-										  (string ";")
-										  (format nil (string "; // ~a~%")  suffix)))))
-						       "`(format s cmd2 ,@rest)")
+						     "`(format s
+							      (concatenate 'string
+									   ,cmd
+									   (format nil
+										   \"; // ~a~%\"
+										   suffix))
+							      ,@rest)"
 						     ))
 					  #+nil (outln (cmd &rest rest)
 						       (let ((cmd2 (concatenate 'string cmd (format nil (string " // ~a~%")  suffix))))
@@ -114,16 +120,17 @@
 				(format nil (string "~{~a~^, ~}") (emits (cdr code))
 					;(mapcar #'emit (cdr code))
 					)
-				,(row "bla" #+nil `(out (string "~{~a~^, ~}") (emits args))))
+				,(row `(out (string "~{~a~^, ~}") (emits args))))
 			       (paren
 				,(row `(out (string "(~{~a~^, ~})") (emits args))))
 			       (space
 				,(row `(out (string "~{~a~^, ~}") (emits args))))
 			       (module
 				,(row `(destructuring-bind (name &rest params) args
-					 (outsemiln (string "module ~a ~a")
-						    (emit name)
-						    (emit `(paren ,@params))))))
+					 #+nil (out (string "~{~a~^, ~}") (emits params))
+					 #-nil (outsemiln (string "module ~a ~a")
+						     (emit name)
+						     (emit "`(paren ,@params)")))))
 			       #+nil (do0
 				      ,(row `(outsemiln (string "~{~a~^ ~}") (emit args))))
 			       (t ,(row `(if (listp name)
