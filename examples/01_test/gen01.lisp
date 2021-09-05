@@ -18,10 +18,19 @@
 			  "output reg [2:0] led")
 			 "reg [23:0] counter;"
 			 (always-at (or "posedge sys_clk"
-				      "negedge sys_rst_n")
+					"negedge sys_rst_n")
+				    (cond ((not sys_rst_n)
+					   (assign<= counter "24'd0"))
+					  ((< counter "24'd1200_0000")
+					   (assign<= counter (+ counter 1)) ; (incf counter)
+					   )
+					  (t
+					   (assign<= counter "24'd0"))
+					  )
 				  )
 			 )
 		))
 
 
 
+ 

@@ -148,9 +148,63 @@
 					       do
 					       (outln (string "~a") (emit b)))
 					 (outln (string "end")))))
-			       (or
+			       ,@(loop for op in `(or +)
+				       collect
+				       `(,op
+					 ,(row `(out (string ,(format nil "~~{(~~a)~~^ ~a ~~}" op))
+						     (emits args)))))
+			       #+nil (or
 				,(row `(out (string "~{~a~^ or ~}")
-					     (emits args))))
+					    (emits args))))
+			       (<
+				,(row `(out (string "((~a)<(~a))")
+					    (emit (first args))
+					    (emit (second args)))))
+			       #+nil (<=
+				,(row `(out (string "((~a)<=(~a))")
+					    (emit (first args))
+					    (emit (second args)))))
+			       (assign<=
+				,(row `(outsemiln (string "~a <= ~a")
+						  (emit (first args))
+						  (emit (second args)))))
+			       #+nil (setf
+				,(row
+				  `(loop for i below (length args) by 2
+					 collect
+					 (let ((a (elt args i))
+					       (b (elt args (+ 1 i))))
+					   (out "~a" (emit `(assign<= ,a ,b)))))
+				  ))
+			       #+nil (incf
+				(destructuring-bind (target &optional (increment 1))
+				    args
+				 ,(row
+				   `(out (string "~a")
+					 (emit `(setf ,target (+ ,target ,increment))))
+				   )))
+			       (not
+				,(row `(out (string "(! (~a))")
+					    (emit (elt args 0)))))
+			       (cond
+				 ,(row `(loop for clause in args
+					      and ci from 0
+					      collect
+					      (destructuring-bind (condition &rest body) clause
+						  (if (eq ci 0)
+						      (outln (string "if ~a")
+							     (emit condition))
+						      (if (eq condition t)
+							  (outln (string "else")
+								 )
+							  (outln (string "else if ~a")
+								 (emit condition))))
+						(loop for b in body
+						      do
+							 (outln (string "~a") (emit b))))
+					      )
+				       )
+				 )
 			       (do0
 				,(row `(out (string "~{~a~^~%~}") (emits args))))
 			       (t ,(row `(if (listp name)
