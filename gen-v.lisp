@@ -79,22 +79,22 @@
 			      code
 			      (level 0)
 			      suffix)
-	       (labels ((emit (code &key (dl 0) ; suffix
+	       (labels ((emit (code &key (dl 0)  suffix
 				      )
 			(emit-v :code code
 				:level (+ dl level)
 				:suffix suffix))
-			(emits (code &key (dl 0) ;suffix
+			(emits (code &key (dl 0) suffix
 				       )
 			  (if (listp code)
 			      (mapcar #'(lambda (x) (emit x
 							 :dl dl
-							; :suffix suffix
+							 :suffix suffix
 							 ))
 				      code)
 			      (emit code
 				       :dl dl
-				       ;:suffix suffix
+					:suffix suffix
 				       ))))
 		 (if code
 		     (if (listp code)
@@ -117,7 +117,7 @@
 							      (concatenate 'string
 									   ,cmd
 									   (format nil
-										   \" // ~a~%\"
+										   \" ~@[ // ~a~]~%\"
 										   suffix))
 							      ,@rest)"
 						     ))
@@ -151,7 +151,7 @@
 					 (outln (string "endmodule")))))
 			       (always-at
 				,(row `(destructuring-bind (condition &rest body) args
-					 (outsemiln (string "always @~a begin")
+					 (outln (string "always @~a begin")
 						    (emit "`(paren ,condition)"))
 					 (loop for b in body
 					       do
