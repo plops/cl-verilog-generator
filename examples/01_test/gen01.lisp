@@ -22,17 +22,19 @@
 				    (cond ((not sys_rst_n)
 					   (setf counter "24'd0"))
 					  ((< counter "24'd1200_0000")
-					   #+nil (assign<= counter (+ counter 1))
-					   (incf counter)
-					   )
+					   (incf counter))
 					  (t
-					   (setf counter "24'd0")
-					   #+nil (assign<= counter "24'd0"))
-					  
-					  )
-				  )
-			 )
-		))
+					   (setf counter "24'd0"))))
+			 (always-at (or "posedge sys_clk"
+					"negedge sys_rst_n")
+				    (cond ((not sys_rst_n)
+					   (setf led "3'b110"))
+					  ((== counter "24'd1200_0000")
+					   (setf (aref led (slice 2 0))
+						 (concat (aref led (slice 1 0))
+							 (aref led 2))))
+					  (t
+					   (setf led led)))))))
 
 
 

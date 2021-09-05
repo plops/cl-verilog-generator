@@ -148,15 +148,19 @@
 					       do
 					       (outln (string "~a") (emit b)))
 					 (outln (string "end")))))
-			       ,@(loop for op in `(or +)
+			       ,@(loop for op in `(or +) ;; operators with arbitrary number of arguments
 				       collect
 				       `(,op
 					 ,(row `(out (string ,(format nil "~~{(~~a)~~^ ~a ~~}" op))
 						     (emits args)))))
-			       #+nil (or
-				,(row `(out (string "~{~a~^ or ~}")
-					    (emits args))))
-			       (<
+			       ,@(loop for op in `(< <= ==) ;; operators with two arguments
+				       collect
+				       `(,op
+					 ,(row `(out (string ,(format nil "((~~a) ~a (~~a))" op))
+						     (emit (first args))
+						     (emit (second args))))))
+			       
+			       #+nil(<.
 				,(row `(out (string "((~a)<(~a))")
 					    (emit (first args))
 					    (emit (second args)))))
