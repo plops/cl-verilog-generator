@@ -174,13 +174,12 @@
 					 collect
 					 (out (string "~a") (emit "`(assign<= ,a ,b)")))
 				  ))
-			       #+nil (incf
-				(destructuring-bind (target &optional (increment 1))
-				    args
-				 ,(row
-				   `(out (string "~a")
-					 (emit `(setf ,target (+ ,target ,increment))))
-				   )))
+			       (incf
+				,(row
+				  `(destructuring-bind (target &optional (increment 1)) args
+				     (out (string "~a")
+					  (emit "`(setf ,target (+ ,target ,increment))")))
+				  ))
 			       (not
 				,(row `(out (string "(! (~a))")
 					    (emit (elt args 0)))))

@@ -22,8 +22,8 @@
 				    (cond ((not sys_rst_n)
 					   (setf counter "24'd0"))
 					  ((< counter "24'd1200_0000")
-					   (assign<= counter (+ counter 1))
-					   #+nil (incf counter)
+					   #+nil (assign<= counter (+ counter 1))
+					   (incf counter)
 					   )
 					  (t
 					   (setf counter "24'd0")
