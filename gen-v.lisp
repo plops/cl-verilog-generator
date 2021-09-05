@@ -73,6 +73,11 @@
 		      (when format
 			("sb-ext:run-program" (string "/usr/bin/iStyle")
 					    (list (string "--style=gnu")  (namestring fn)
+						  ))
+			("sb-ext:run-program" (string "/usr/bin/sed")
+					      (list (string "-i")
+						    (string "/^$/d")
+						    (namestring fn)
 						  ))))))))
 
 	     (defun emit-v (&key
