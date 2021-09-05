@@ -168,13 +168,11 @@
 				,(row `(outsemiln (string "~a <= ~a")
 						  (emit (first args))
 						  (emit (second args)))))
-			       #+nil (setf
+			       (setf
 				,(row
-				  `(loop for i below (length args) by 2
+				  `(loop for (a b) on args by #'cddr
 					 collect
-					 (let ((a (elt args i))
-					       (b (elt args (+ 1 i))))
-					   (out "~a" (emit `(assign<= ,a ,b)))))
+					 (out (string "~a") (emit "`(assign<= ,a ,b)")))
 				  ))
 			       #+nil (incf
 				(destructuring-bind (target &optional (increment 1))

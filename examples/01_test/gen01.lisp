@@ -20,12 +20,15 @@
 			 (always-at (or "posedge sys_clk"
 					"negedge sys_rst_n")
 				    (cond ((not sys_rst_n)
-					   (assign<= counter "24'd0"))
+					   (setf counter "24'd0"))
 					  ((< counter "24'd1200_0000")
-					   (assign<= counter (+ counter 1)) ; (incf counter)
+					   (assign<= counter (+ counter 1))
+					   #+nil (incf counter)
 					   )
 					  (t
-					   (assign<= counter "24'd0"))
+					   (setf counter "24'd0")
+					   #+nil (assign<= counter "24'd0"))
+					  
 					  )
 				  )
 			 )
