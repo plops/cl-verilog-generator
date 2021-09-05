@@ -107,11 +107,17 @@
 										   \"; // ~a~%\"
 										   suffix))
 							      ,@rest)"
+						     )
+						   (outln (cmd &rest rest)
+						     "`(format s
+							      (concatenate 'string
+									   ,cmd
+									   (format nil
+										   \" // ~a~%\"
+										   suffix))
+							      ,@rest)"
 						     ))
-					  #+nil (outln (cmd &rest rest)
-						       (let ((cmd2 (concatenate 'string cmd (format nil (string " // ~a~%")  suffix))))
-							 "(format s cmd2 ,@rest)")
-						       )
+					  
 					  
 					  ,body)))))
 			    `(case (car code)
@@ -126,13 +132,27 @@
 			       (space
 				,(row `(out (string "~{~a~^, ~}") (emits args))))
 			       (module
-				,(row `(destructuring-bind (name &rest params) args
-					 #+nil (out (string "~{~a~^, ~}") (emits params))
-					 #-nil (outsemiln (string "module ~a ~a")
+				,(row `(destructuring-bind (name params &rest body) args
+					 (outsemiln (string "module ~a ~a")
 						     (emit name)
-						     (emit "`(paren ,@params)")))))
-			       #+nil (do0
-				      ,(row `(outsemiln (string "~{~a~^ ~}") (emit args))))
+						     (emit "`(paren ,@params)"))
+					 (loop for b in body
+					       do
+					       (outln (string "~a") (emit b)))
+					 (outln (string "endmodule")))))
+			       (always-at
+				,(row `(destructuring-bind (condition &rest body) args
+					 (outsemiln (string "always @~a begin")
+						    (emit "`(paren ,condition)"))
+					 (loop for b in body
+					       do
+					       (outln (string "~a") (emit b)))
+					 (outln (string "end")))))
+			       (or
+				,(row `(out (string "~{~a~^ or ~}")
+					     (emits args))))
+			       (do0
+				,(row `(out (string "~{~a~^~%~}") (emits args))))
 			       (t ,(row `(if (listp name)
 					     (string "lambda call not supported")
 					     (out (string "~a~a")
