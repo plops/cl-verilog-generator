@@ -193,8 +193,13 @@
 				       `(destructuring-bind (name &rest indices) args
 					  (out (string "~a[~{~a~^,~}]")
 					       (emit name)
-					       (emits indices)))
-				       ))
+					       (emits indices)))))
+			       (slice
+				,(row
+				  `(out (string "~a:~a")
+					(emit (first args))
+					(emit (second args))))
+				)
 			       (cond
 				 ,(row `(loop for clause in args
 					      and ci from 0
