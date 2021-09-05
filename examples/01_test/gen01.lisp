@@ -29,7 +29,7 @@
 					"negedge sys_rst_n")
 				    (cond ((not sys_rst_n)
 					   (setf led "3'b110"))
-					  ((== counter "24'd1200_0000")
+					  ((== counter "24'd1200_0000") (comment "0.5s delay")
 					   (setf (aref led (slice 2 0))
 						 (concat (aref led (slice 1 0))
 							 (aref led 2))))

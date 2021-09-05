@@ -79,19 +79,23 @@
 			      code
 			      (level 0)
 			      suffix)
-	       (labels ((emit (code &key (dl 0) suffix)
+	       (labels ((emit (code &key (dl 0) ; suffix
+				      )
 			(emit-v :code code
 				:level (+ dl level)
 				:suffix suffix))
-			(emits (code &key (dl 0) suffix)
+			(emits (code &key (dl 0) ;suffix
+				       )
 			  (if (listp code)
 			      (mapcar #'(lambda (x) (emit x
 							 :dl dl
-							 :suffix suffix))
+							; :suffix suffix
+							 ))
 				      code)
 			      (emit code
 				       :dl dl
-				       :suffix suffix))))
+				       ;:suffix suffix
+				       ))))
 		 (if code
 		     (if (listp code)
 			 ,(flet ((row (body)
@@ -104,7 +108,7 @@
 							      (concatenate 'string
 									   ,cmd
 									   (format nil
-										   \"; // ~a~%\"
+										   \";~@[ // ~a~]~%\"
 										   suffix))
 							      ,@rest)"
 						     )
@@ -121,6 +125,9 @@
 					  
 					  ,body)))))
 			    `(case (car code)
+			       (comment
+				,(row
+				  `(setf suffix (first args))))
 			       (comma
 				#+nil
 				(format nil (string "~{~a~^, ~}") (emits (cdr code))
@@ -209,7 +216,7 @@
 						      (outln (string "if ~a")
 							     (emit condition))
 						      (if (eq condition t)
-							  (outln (string "else")
+							  (outln (string "else ")
 								 )
 							  (outln (string "else if ~a")
 								 (emit condition))))
