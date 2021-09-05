@@ -129,6 +129,8 @@
 				,(row `(out (string "~{~a~^, ~}") (emits args))))
 			       (paren
 				,(row `(out (string "(~{~a~^, ~})") (emits args))))
+			       (concat
+				,(row `(out (string "{~{~a~^, ~}}") (emits args))))
 			       (space
 				,(row `(out (string "~{~a~^, ~}") (emits args))))
 			       (module
@@ -187,6 +189,12 @@
 			       (not
 				,(row `(out (string "(! (~a))")
 					    (emit (elt args 0)))))
+			       (aref ,(row
+				       `(destructuring-bind (name &rest indices) args
+					  (out (string "~a[~{~a~^,~}]")
+					       (emit name)
+					       (emits indices)))
+				       ))
 			       (cond
 				 ,(row `(loop for clause in args
 					      and ci from 0
