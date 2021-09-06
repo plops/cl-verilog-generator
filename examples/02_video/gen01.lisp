@@ -70,11 +70,34 @@
 						 "2'b11")
 				 taken_temp "1'b1")
 			   (incf divider))
-		       (case (concat (aref busy_sr (slice 31 29))
-				     (aref busy_sr (slice 2 0)))
-			 ("6'b111_111"
-			  (incf divider)
-			  (case (aref divider (slice 7 6))
-			       ,@(loop for e in `("2'b00" "2'b01" "2'b10" t)
-				       collect
-				       `(,e (setf sioc_temp 1)))))))))))))
+		       )
+		   (do0
+			(case (concat (aref busy_sr (slice 31 29))
+				      (aref busy_sr (slice 2 0)))
+			  ,@(loop for e in `(("6'b111_111" 1 1 1 1)
+					     ("6'b111_110" 1 1 1 1)
+					     ("6'b111_100" 0 0 0 0)
+					     ("6'b110_000" 0 1 1 1)
+					     ("6'b100_000" 1 1 1 1)
+					     ("6'b000_000" 1 1 1 1)
+					     (t 0 1 1 0)
+					     )
+				 
+				  collect
+				  (destructuring-bind (top-key a b c d) e
+				    `(,top-key
+				      (case (aref divider (slice 7 6))
+					,@(loop for key in `("2'b00" "2'b01" "2'b10" t)
+						and f in (list a b c d)
+						collect
+						`(,key (setf sioc_temp ,f))))))))
+
+			
+			(if (== divider "8'b1111_1111")
+			    (setf busy_sr (concat (aref busy_sr (slice 30 0))
+						  "1'b0")
+				  data_sr (concat (aref data_sr (slice 30 0))
+						  "1'b1")
+				  divider "{8{1'b0}}"
+				  )
+			    (incf divider)))))))))
