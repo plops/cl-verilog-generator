@@ -132,5 +132,34 @@
 		    (setf address "{8{1'b0}}"))
 		   ((== advance 1)
 		    (incf address)))
-	     (case address
-	       ())))))
+	     #+nil (case address
+	       ()))))
+  (write-source
+   (format nil "~a/source/ov2640_controller.v" *path*)
+   `(module ov2640_controller
+	    ("input clk"		
+	     "input resend"
+	     "output config_finished"
+	     "output sioc"
+	     "inout siod"
+	     "output reset"
+	     "output pwdn")
+	    ,@(loop for e in `((command 15)
+			       (finished)
+			       (taken)
+			       )
+		    collect
+		    (destructuring-bind (name &optional size default) e
+		      (format nil "wire ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+	    ,@(loop for e in `((send :default 0)
+			       
+			       )
+		    collect
+		    (destructuring-bind (name &key size default) e
+		      (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+	    (assign config_finished finished
+		    reset 1
+		    pwdn 0)
+	    (always-at finished
+		       (= send ~finished))
+	    )))

@@ -170,10 +170,10 @@
 					    `(,op
 					      ,(row `(out (string ,(format nil "~~{(~~a)~~^ ~a ~~}" op))
 							  (emits args))))))
-				,@(loop for op in `(< <= ==) ;; operators with two arguments
+				,@(loop for op in `(< <= == =) ;; operators with two arguments
 					collect
 					`(,op
-					  ,(row `(out (string ,(format nil "((~~a) ~a (~~a))" op))
+					  ,(row `(out (string ,(format nil "(~~a) ~a (~~a)" op))
 						      (emit (first args))
 						      (emit (second args))))))
 			       
