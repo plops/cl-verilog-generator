@@ -271,7 +271,11 @@
 							(outln (string "end"))))
 					     (outln (string "endcase"))
 					  ))
-				    )
+				  )
+				(make-instance
+				 ,(row `(outsemiln (string "~a ~a")
+						   (emit (first args))
+						   (emit (second args)))))
 				(do0
 				 ,(row `(progn
 					  

@@ -162,9 +162,10 @@
 		    pwdn 0)
 	    (always-at finished
 		       (= send ~finished))
-	    ("ov2640_registers lut" :clk clk
-				    :advance taken
-				    :command command
-				    :finished finished
-				    :resend resend)
+	    (make-instance ov2640_registers
+			   (lut :clk clk
+				:advance taken
+				:command command
+				:finished finished
+				:resend resend))
 	    )))
