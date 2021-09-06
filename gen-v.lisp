@@ -253,10 +253,34 @@
 					    (outln (string "else begin"))
 					    (outln (string "~a") (emit false-statement))
 					    (outln (string "end"))))))
+				(case
+				    ,(row `(destructuring-bind (keyform
+								&rest clauses)
+					       args
+					     
+					     (outln (string "case (~a)") (emit keyform))
+					     (loop for clause in clauses
+						   do
+						      (destructuring-bind (key &rest forms) clause
+							(if (eq key t)
+							    (outln (string "default: begin"))
+							    (outln (string "~a: begin")  (emit key)))
+							(loop for form in forms
+							      do
+							      (outsemiln (string "~a") (emit form)))
+							(outln (string "end"))))
+					     (outln (string "endcase"))
+					  ))
+				    )
 				(do0
-				 ,(row `(out (string "~{~a~^~%~}") (emits args))))
-				(progn
 				 ,(row `(progn
+					  
+					  (loop for arg in args
+						do
+						(outln (string "~a") (emit arg)))
+					  )))
+				(progn
+				  ,(row `(progn
 					  (outln (string "begin"))
 					  (loop for arg in args
 						do

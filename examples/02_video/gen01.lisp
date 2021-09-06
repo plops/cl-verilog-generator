@@ -51,7 +51,7 @@
 	     (setf taken_temp "1'b0")
 	     (if (== (aref busy_sr 31)
 		     0)
-		 (progn
+		 (do0
 		   (setf sioc_temp 1)
 		   (if (== send 1)
 		       (if (== divider "8'b0000_0000")
@@ -69,4 +69,12 @@
 						 "9'b1_1111_1111"
 						 "2'b11")
 				 taken_temp "1'b1")
-			   (incf divider)))))))))
+			   (incf divider))
+		       (case (concat (aref busy_sr (slice 31 29))
+				     (aref busy_sr (slice 2 0)))
+			 ("6'b111_111"
+			  (incf divider)
+			  (case (aref divider (slice 7 6))
+			       ,@(loop for e in `("2'b00" "2'b01" "2'b10" t)
+				       collect
+				       `(,e (setf sioc_temp 1)))))))))))))
