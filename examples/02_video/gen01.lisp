@@ -161,7 +161,7 @@
 		    reset 1
 		    pwdn 0)
 	    (always-at finished
-		       (= send ~finished))
+		       (assign= send ~finished))
 	    (make-instance ov2640_registers
 			   (lut :clk clk
 				:advance taken

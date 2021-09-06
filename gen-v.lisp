@@ -170,7 +170,7 @@
 					    `(,op
 					      ,(row `(out (string ,(format nil "~~{(~~a)~~^ ~a ~~}" op))
 							  (emits args))))))
-				,@(loop for op in `(< <= == =) ;; operators with two arguments
+				,@(loop for op in `(< <= ==) ;; operators with two arguments
 					collect
 					`(,op
 					  ,(row `(out (string ,(format nil "(~~a) ~a (~~a)" op))
@@ -190,6 +190,13 @@
 				   `(loop for (a b) on args by #'cddr
 					  collect
 					  (outsemiln (string "assign ~a = ~a")
+						     a b))
+				   ))
+				(assign=
+				 ,(row
+				   `(loop for (a b) on args by #'cddr
+					  collect
+					  (outsemiln (string "~a = ~a")
 						     a b))
 				   ))
 				(assign<=
