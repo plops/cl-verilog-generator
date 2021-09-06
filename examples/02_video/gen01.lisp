@@ -168,4 +168,13 @@
 				:command command
 				:finished finished
 				:resend resend))
+	    (make-instance (i2c_interface
+			    :clk clk
+			    :taken taken
+			    :siod siod
+			    :sioc sioc
+			    :send send
+			    :rega (aref command (slice 15 8))
+			    :value (aref command (slice 7 0)))
+			   )
 	    )))
