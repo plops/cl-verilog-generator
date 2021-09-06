@@ -34,25 +34,13 @@
 			 ,@(loop for e in `(siod sioc taken)
 				 collect
 				 `(assign ,e ,(format nil "~a_temp" e)))
-			 (always-at (or "posedge sys_clk"
-					"negedge sys_rst_n")
-				    (cond ((not sys_rst_n)
-					   (setf counter "24'd0"))
-					  ((< counter "24'd1200_0000")
-					   (incf counter))
-					  (t
-					   (setf counter "24'd0"))))
-			 (always-at (or "posedge sys_clk"
-					"negedge sys_rst_n")
-				    (cond ((not sys_rst_n)
-					   (setf led "3'b110"))
-					  ((== counter "24'd1200_0000") (comment "0.5s delay")
-					   (setf (aref led (slice 2 0))
-						 (concat (aref led (slice 1 0))
-							 (aref led 2))))
-					  (t
-					   (setf led led)))))))
-
-
-
- 
+			 (always-at (or busy_sr (aref data_sr 31))
+				    (if (logior
+					 (== (aref busy_sr (slice 11 10))
+					     "2'b10")
+					 (== (aref busy_sr (slice 20 19))
+					     "2'b10")
+					 (== (aref busy_sr (slice 29 28))
+					     "2'b10"))
+					(setf siod_temp "1'bZ")
+					(setf siod_temp (aref data_sr 31)))))))

@@ -102,163 +102,175 @@
 					:suffix suffix
 				       ))))
 		 (if code
-		     (if (listp code)
-			 ,(flet ((row (body)
-				   `(destructuring-bind (name &rest args) code
-				      (with-output-to-string (s)
-					(macrolet ((out (cmd &rest rest)
-						     "`(format s ,cmd ,@rest)")
-						   (outsemiln (cmd &rest rest)
-						     "`(format s
+		     (macrolet ((out (cmd &rest rest)
+						      "`(format s ,cmd ,@rest)")
+						    (outsemiln (cmd &rest rest)
+						      "`(format s
 							      (concatenate 'string
 									   ,cmd
 									   (format nil
 										   \";~@[ // ~a~]~%\"
 										   suffix))
 							      ,@rest)"
-						     )
-						   (outln (cmd &rest rest)
-						     "`(format s
+						      )
+						    (outln (cmd &rest rest)
+						      "`(format s
 							      (concatenate 'string
 									   ,cmd
 									   (format nil
 										   \" ~@[ // ~a~]~%\"
 										   suffix))
 							      ,@rest)"
-						     ))
-					  
-					  
-					  ,body)))))
-			    `(case (car code)
-			       (comment
-				,(row
-				  `(setf suffix (first args))))
-			       (comma
-				#+nil
-				(format nil (string "~{~a~^, ~}") (emits (cdr code))
+						      ))
+		      (if (listp code)
+			  ,(flet ((row (body)
+				    `(destructuring-bind (name &rest args) code
+				       (with-output-to-string (s)
+					 ,body))))
+			     `(case (car code)
+				(comment
+				 ,(row
+				   `(setf suffix (first args))))
+				(comma
+				 #+nil
+				 (format nil (string "~{~a~^, ~}") (emits (cdr code))
 					;(mapcar #'emit (cdr code))
-					)
-				,(row `(out (string "~{~a~^, ~}") (emits args))))
-			       (paren
-				,(row `(out (string "(~{~a~^, ~})") (emits args))))
-			       (concat
-				,(row `(out (string "{~{~a~^, ~}}") (emits args))))
-			       (space
-				,(row `(out (string "~{~a~^, ~}") (emits args))))
-			       (module
-				,(row `(destructuring-bind (name params &rest body) args
-					 (outsemiln (string "module ~a ~a")
+					 )
+				 ,(row `(out (string "~{~a~^, ~}") (emits args))))
+				(paren
+				 ,(row `(out (string "(~{~a~^, ~})") (emits args))))
+				(concat
+				 ,(row `(out (string "{~{~a~^, ~}}") (emits args))))
+				(space
+				 ,(row `(out (string "~{~a~^, ~}") (emits args))))
+				(module
+				 ,(row `(destructuring-bind (name params &rest body) args
+					  (outsemiln (string "module ~a ~a")
 						     (emit name)
 						     (emit "`(paren ,@params)"))
-					 (loop for b in body
-					       do
-					       (outln (string "~a") (emit b)))
-					 (outln (string "endmodule")))))
-			       (always-at
-				,(row `(destructuring-bind (condition &rest body) args
-					 (outln (string "always @~a begin")
-						    (emit "`(paren ,condition)"))
-					 (loop for b in body
-					       do
-					       (outln (string "~a") (emit b)))
-					 (outln (string "end")))))
-			       ,@(loop for op in `(or +) ;; operators with arbitrary number of arguments
-				       collect
-				       `(,op
-					 ,(row `(out (string ,(format nil "~~{(~~a)~~^ ~a ~~}" op))
-						     (emits args)))))
-			       ,@(loop for op in `(< <= ==) ;; operators with two arguments
-				       collect
-				       `(,op
-					 ,(row `(out (string ,(format nil "((~~a) ~a (~~a))" op))
-						     (emit (first args))
-						     (emit (second args))))))
+					  (loop for b in body
+						do
+						   (outln (string "~a") (emit b)))
+					  (outln (string "endmodule")))))
+				(always-at
+				 ,(row `(destructuring-bind (condition &rest body) args
+					  (outln (string "always @~a begin")
+						 (emit "`(paren ,condition)"))
+					  (loop for b in body
+						do
+						   (outln (string "~a") (emit b)))
+					  (outln (string "end")))))
+				,@(loop for op in `(or + (logior "||")) ;; operators with arbitrary number of arguments
+					collect
+					(if (listp op)
+					    (destructuring-bind (lisp-name verilog-name) op
+					      `(,lisp-name
+						,(row `(out (string ,(format nil "~~{(~~a)~~^ ~a ~~}" verilog-name))
+							    (emits args)))))
+					    `(,op
+					      ,(row `(out (string ,(format nil "~~{(~~a)~~^ ~a ~~}" op))
+							  (emits args))))))
+				,@(loop for op in `(< <= ==) ;; operators with two arguments
+					collect
+					`(,op
+					  ,(row `(out (string ,(format nil "((~~a) ~a (~~a))" op))
+						      (emit (first args))
+						      (emit (second args))))))
 			       
-			       #+nil(<.
-				,(row `(out (string "((~a)<(~a))")
-					    (emit (first args))
-					    (emit (second args)))))
-			       #+nil (<=
-				,(row `(out (string "((~a)<=(~a))")
-					    (emit (first args))
-					    (emit (second args)))))
-			       (assign
-				,(row
-				  `(loop for (a b) on args by #'cddr
-					 collect
-					 (outsemiln (string "assign ~a = ~a")
-						    a b))
-				  ))
-			       (assign<=
-				,(row `(outsemiln (string "~a <= ~a")
+				#+nil(<.
+				      ,(row `(out (string "((~a)<(~a))")
 						  (emit (first args))
 						  (emit (second args)))))
-			       (setf
-				,(row
-				  `(loop for (a b) on args by #'cddr
-					 collect
-					 (out (string "~a") (emit "`(assign<= ,a ,b)")))
-				  ))
-			       (incf
-				,(row
-				  `(destructuring-bind (target &optional (increment 1)) args
-				     (out (string "~a")
-					  (emit "`(setf ,target (+ ,target ,increment))")))
-				  ))
-			       (not
-				,(row `(out (string "(! (~a))")
-					    (emit (elt args 0)))))
-			       (aref ,(row
-				       `(destructuring-bind (name &rest indices) args
-					  (out (string "~a[~{~a~^,~}]")
-					       (emit name)
-					       (emits indices)))))
-			       (slice
-				,(row
-				  `(out (string "~a:~a")
-					(emit (first args))
-					(emit (second args))))
-				)
-			       (cond
-				 ,(row `(loop for clause in args
-					      and ci from 0
-					      collect
-					      (destructuring-bind (condition &rest body) clause
-						  (if (eq ci 0)
-						      (outln (string "if ~a")
-							     (emit condition))
-						      (if (eq condition t)
-							  (outln (string "else ")
-								 )
-							  (outln (string "else if ~a")
-								 (emit condition))))
-						(loop for b in body
-						      do
-							 (outln (string "~a") (emit b))))
-					      )
-				       )
+				#+nil (<=
+				       ,(row `(out (string "((~a)<=(~a))")
+						   (emit (first args))
+						   (emit (second args)))))
+				(assign
+				 ,(row
+				   `(loop for (a b) on args by #'cddr
+					  collect
+					  (outsemiln (string "assign ~a = ~a")
+						     a b))
+				   ))
+				(assign<=
+				 ,(row `(outsemiln (string "~a <= ~a")
+						   (emit (first args))
+						   (emit (second args)))))
+				(setf
+				 ,(row
+				   `(loop for (a b) on args by #'cddr
+					  collect
+					  (out (string "~a") (emit "`(assign<= ,a ,b)")))
+				   ))
+				(incf
+				 ,(row
+				   `(destructuring-bind (target &optional (increment 1)) args
+				      (out (string "~a")
+					   (emit "`(setf ,target (+ ,target ,increment))")))
+				   ))
+				(not
+				 ,(row `(out (string "(! (~a))")
+					     (emit (elt args 0)))))
+				(aref ,(row
+					`(destructuring-bind (name &rest indices) args
+					   (out (string "~a[~{~a~^,~}]")
+						(emit name)
+						(emits indices)))))
+				(slice
+				 ,(row
+				   `(out (string "~a:~a")
+					 (emit (first args))
+					 (emit (second args))))
 				 )
-			       (do0
-				,(row `(out (string "~{~a~^~%~}") (emits args))))
-			       (t ,(row `(if (listp name)
-					     (string "lambda call not supported")
-					     (out (string "~a~a")
-						  (emit name)
-						  (emit "`(paren ,@args)"))))
-				)))
-			 (cond
-			   ((keywordp code)
-			    (format nil (string "kw_~a") code))
-			   ((symbolp code)
-			    (format nil (string "~a") code))
-			   ((stringp code)
-			    (format nil (string "~a") code))
-			   ((numberp code)
-			    (cond
-			      ((integerp code)
-			       (format nil (string "~a") code))
-			      (t
-			       (string "float not supported"))))))
+				(cond
+				  ,(row `(loop for clause in args
+					       and ci from 0
+					       collect
+					       (destructuring-bind (condition &rest body) clause
+						 (if (eq ci 0)
+						     (outln (string "if ~a")
+							    (emit condition))
+						     (if (eq condition t)
+							 (outln (string "else ")
+								)
+							 (outln (string "else if ~a")
+								(emit condition))))
+						 (loop for b in body
+						       do
+							  (outln (string "~a") (emit b))))
+					       )))
+				(if
+				 ,(row `(destructuring-bind (condition
+							     true-statement
+							     &optional
+							       false-statement)
+					    args
+					  (outln (string "if ~a") (emit condition))
+					  (outln (string "~a") (emit true-statement))
+					  (when false-statement
+					    (outln (string "else"))
+					    (outln (string "~a") (emit false-statement))))))
+				(do0
+				 ,(row `(out (string "~{~a~^~%~}") (emits args))))
+				(t ,(row `(if (listp name)
+					      (string "lambda call not supported")
+					      (out (string "~a~a")
+						   (emit name)
+						   (emit "`(paren ,@args)"))))
+				 )))
+			  (cond
+			    ((keywordp code)
+			     (format nil (string "kw_~a") code))
+			    ((symbolp code)
+			     (format nil (string "~a") code))
+			    ((stringp code)
+			     (format nil (string "~a") code))
+			    ((numberp code)
+			     (cond
+			       ((integerp code)
+				(format nil (string "~a") code))
+			       (t
+				(string "float not supported")))))))
 		     (string ""))))
 	      
 	     
