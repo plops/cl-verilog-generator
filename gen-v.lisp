@@ -68,15 +68,16 @@
 		      (with-open-file (s fn
 					 :direction :output
 					 :if-exists :supersede
-					 :if-does-not-exist :create)
-			(write-sequence code-str s))
+					 :if-does-not-exist :create)			(write-sequence code-str s))
 		      (when format
-			("sb-ext:run-program" (string "/usr/bin/iStyle")
+			#+nil ("sb-ext:run-program" (string "/usr/bin/iStyle")
 					    (list (string "--style=gnu")  (namestring fn)
 						  ))
+			("sb-ext:run-program" (string "/home/martin/stage/cl-verilog-generator/run_emacs_formatter.sh")
+					      (list (namestring fn)))
 			("sb-ext:run-program" (string "/usr/bin/sed")
 					      (list (string "-i")
-						    (string "/^$/d")
+						    (string "/^[[:space:]]*$/d")
 						    (namestring fn)
 						  ))))))))
 
@@ -235,12 +236,12 @@
 					       collect
 					       (destructuring-bind (condition &rest body) clause
 						 (if (eq ci 0)
-						     (outln (string "if ~a begin")
+						     (outln (string "if (~a) begin")
 							    (emit condition))
 						     (if (eq condition t)
 							 (outln (string "else begin")
 								)
-							 (outln (string "else if ~a begin")
+							 (outln (string "else if (~a) begin")
 								(emit condition))))
 						 (loop for b in body
 						       do
@@ -253,7 +254,7 @@
 							     &optional
 							       false-statement)
 					    args
-					  (outln (string "if ~a begin") (emit condition))
+					  (outln (string "if (~a) begin") (emit condition))
 					  (outln (string "~a") (emit true-statement))
 					  (outln (string "end"))
 					  (when false-statement
