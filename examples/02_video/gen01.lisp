@@ -31,6 +31,9 @@
 				 collect
 				 (destructuring-bind (name &optional size default) e
 				   (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+			 ,@(loop for e in `(siod sioc taken)
+				 collect
+				 `(assign ,e ,(format nil "~a_temp" e)))
 			 (always-at (or "posedge sys_clk"
 					"negedge sys_rst_n")
 				    (cond ((not sys_rst_n)

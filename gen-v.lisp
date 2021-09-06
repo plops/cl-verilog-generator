@@ -182,6 +182,13 @@
 				,(row `(out (string "((~a)<=(~a))")
 					    (emit (first args))
 					    (emit (second args)))))
+			       (assign
+				,(row
+				  `(loop for (a b) on args by #'cddr
+					 collect
+					 (outsemiln (string "assign ~a = ~a")
+						    a b))
+				  ))
 			       (assign<=
 				,(row `(outsemiln (string "~a <= ~a")
 						  (emit (first args))
