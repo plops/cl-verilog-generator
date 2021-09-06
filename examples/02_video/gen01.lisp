@@ -100,4 +100,37 @@
 						  "1'b1")
 				  divider "{8{1'b0}}"
 				  )
-			    (incf divider)))))))))
+			    (incf divider))))))))
+
+  ;; https://www.uctronics.com/download/cam_module/OV2640DS.pdf v.1.6
+  ;; http://www.uctronics.com/download/OV2640_DS.pdf v.2.2
+  (write-source
+   (format nil "~a/source/ov2640_registers.v" *path*)
+   `(module ov2640_interface
+	    ("input clk"		
+	     "input resend"
+	     "input advance"
+	     "output [15:0] command" 
+	     "output finished")
+	    ,@(loop for e in `((sreg 15)
+			       (finished_temp)
+			       (address 8 "{9{1'b0}}")
+			       )
+		    collect
+		    (destructuring-bind (name &optional size default) e
+		      (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+	    (assign command sreg
+		    finished finished_temp)
+	    (always-at sreg
+		       ;; when register and value is FFFF indicate config is finished
+		       (if (== sreg "16'hFFFF")
+			   (setf finished_temp 1)
+			   (setf finished_temp 0)))
+	    (always-at
+	     "posedge clk"
+	     (cond ((== resend 1)
+		    (setf address "{8{1'b0}}"))
+		   ((== advance 1)
+		    (incf address)))
+	     (case address
+	       ())))))
