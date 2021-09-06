@@ -228,16 +228,17 @@
 					       collect
 					       (destructuring-bind (condition &rest body) clause
 						 (if (eq ci 0)
-						     (outln (string "if ~a")
+						     (outln (string "if ~a begin")
 							    (emit condition))
 						     (if (eq condition t)
-							 (outln (string "else ")
+							 (outln (string "else begin")
 								)
-							 (outln (string "else if ~a")
+							 (outln (string "else if ~a begin")
 								(emit condition))))
 						 (loop for b in body
 						       do
-							  (outln (string "~a") (emit b))))
+							  (outln (string "~a") (emit b)))
+						 (outln (string "end")))
 					       )))
 				(if
 				 ,(row `(destructuring-bind (condition
@@ -245,13 +246,22 @@
 							     &optional
 							       false-statement)
 					    args
-					  (outln (string "if ~a") (emit condition))
+					  (outln (string "if ~a begin") (emit condition))
 					  (outln (string "~a") (emit true-statement))
+					  (outln (string "end"))
 					  (when false-statement
-					    (outln (string "else"))
-					    (outln (string "~a") (emit false-statement))))))
+					    (outln (string "else begin"))
+					    (outln (string "~a") (emit false-statement))
+					    (outln (string "end"))))))
 				(do0
 				 ,(row `(out (string "~{~a~^~%~}") (emits args))))
+				(progn
+				 ,(row `(progn
+					  (outln (string "begin"))
+					  (loop for arg in args
+						do
+						(outsemiln (string "~a") (emit arg)))
+					  (outln (string "end")))))
 				(t ,(row `(if (listp name)
 					      (string "lambda call not supported")
 					      (out (string "~a~a")
