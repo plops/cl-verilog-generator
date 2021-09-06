@@ -288,9 +288,24 @@
 					  (outln (string "end")))))
 				(t ,(row `(if (listp name)
 					      (string "lambda call not supported")
-					      (out (string "~a~a")
-						   (emit name)
-						   (emit "`(paren ,@args)"))))
+					      (let* ((positional (loop for i below (length args)
+								       until (keywordp (elt args i))
+								       collect
+								       (elt args i)))
+						     (plist (subseq args
+								    (length positional)))
+						     (props (loop for e in plist
+								  by #'cddr
+								  collect
+								  e)))
+						(out (string "~a~a") name
+							(emit "`(paren ,@(append
+									 positional
+									 (loop for e in props collect
+									       `(,(format nil \".~a\" e) ,(getf plist e)))))")))
+					      #+nil (out (string "~a~a")
+							 (emit name)
+							 (emit "`(paren ,@args)"))))
 				 )))
 			  (cond
 			    ((keywordp code)
