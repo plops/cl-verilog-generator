@@ -147,9 +147,12 @@
 				 ,(row `(out (string "~{~a~^, ~}") (emits args))))
 				(module
 				 ,(row `(destructuring-bind (name params &rest body) args
-					  (outsemiln (string "module ~a ~a")
+					  #+nil (outsemiln (string "module ~a ~%(~%~{~a~^,~%~}~%)")
 						     (emit name)
 						     (emit "`(paren ,@params)"))
+					  (outsemiln (string "module ~a ~%(~%~{~a~^,~%~}~%)")
+						     (emit name)
+						     params)
 					  (loop for b in body
 						do
 						   (outln (string "~a") (emit b)))
