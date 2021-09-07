@@ -101,6 +101,66 @@
 				  divider "{8{1'b0}}"
 				  )
 			    (incf divider))))))))
+  (write-source
+   (format nil "~a/source/syn_gen.v" *path*)
+   `(module syn_gen
+	    (,@(loop for e in `((pxl_clk)
+				(rst_n)
+				(h_total :len 16)
+				(h_sync :len 16)
+				(h_bporch :len 16)
+				(h_res :len 16)
+				(v_total :len 16)
+				(v_sync :len 16)
+				(v_bporch :len 16)
+				(v_res :len 16)
+				(rd_hres :len 16)
+				(rd_vres :len 16)
+				(hs_pol ) ;; 0 .. negative polarity
+				(vs_pol )
+				(rden :type "output reg")
+				(de :type "output reg")
+				(hs :type "output reg")
+				(vs :type "output reg"))
+		     collect
+		     (destructuring-bind (name &key (type "input") len) e
+		       (format nil "~a~@[ [~a:0]~] ~a_~a" type (when len (- len 1))
+			       (if (string= type "input")
+				   "I"
+				   "O")
+			       name)))
+	     )
+	  ,@(loop for e in `((V_cnt 15)
+			     (H_cnt 15)
+			     (Rden_dn)
+			     )
+		  collect
+		  (destructuring-bind (name &optional size default) e
+		    (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+	  ,@(loop for e in `(de_w hs_w vs_w de_dn hs_dn vs_dn)
+		  collect
+		  (format nil "wire Pout_~a" e))
+	  ,@(loop for e in `(Rden_w)
+		  collect
+		  (format nil "wire ~a" e))
+	  ,@(loop for e in `(siod sioc taken)
+		  collect
+		  `(assign ,e ,(format nil "~a_temp" e)))
+	  (always-at (or I_pxl_clk
+			   I_rst_n)
+		       ;; tristate when idle or siod driven by master
+		       (if !I_rst_n
+			   (setf V_cnt "16'd0")
+			   (cond ((logand (<= (- I_v_total "1'b1") V_cnt)
+					  (<= (- I_h_total "1'b1") H_cnt))
+				  (setf V_cnt "16'd0"))
+				 ((<= (- I_h_total "1'b1")
+				      H_cnt)
+				  (incf V_cnt "1'b1"))
+				 (t
+				  (setf V_cnt V_cnt))
+				 )))
+	    ))
 
   ;; https://www.uctronics.com/download/cam_module/OV2640DS.pdf v.1.6
   ;; http://www.uctronics.com/download/OV2640_DS.pdf v.2.2
@@ -132,8 +192,66 @@
 		    (setf address "{8{1'b0}}"))
 		   ((== advance 1)
 		    (incf address)))
-	     #+nil (case address
-	       ()))))
+	     
+	     ,(let ((l  `((FF 01) (12 80)
+			  (FF 00) (2c ff) (2e df)
+			  (FF 01) (3c 32) (11 80) ;/* Set PCLK divider */
+			  (09 02)	;/* Output drive x2 */
+			  (04 28) (13 E5) (14 48) (15 00) ;//Invert VSYNC
+			  (2c 0c) (33 78) (3a 33) (3b fb) (3e 00) (43 11) (16 10) (39 02) (35 88) (22 0a) (37 40) (23 00)
+			  (34 a0) (06 02) (06 88) (07 c0) (0d b7) (0e 01) (4c 00) (4a 81) (21 99) (24 40) (25 38) (26 82) ;/* AGC/AEC fast mode operating region */	
+			  (48 00)	;/* Zoom control 2 MSBs */
+			  (49 00)	;/* Zoom control 8 MSBs */
+			  (5c 00) (63 00) (46 00) (47 00) (0C 3A) ;/* Set banding filter */
+			  (5D 55) (5E 7d) (5F 7d) (60 55) (61 70) (62 80) (7c 05) (20 80) (28 30) (6c 00) (6d 80) (6e 00)
+			  (70 02) (71 94) (73 c1) (3d 34) (5a 57) (4F bb) (50 9c)
+			  (FF 00) (e5 7f) (F9 C0) (41 24) (E0 14) (76 ff) (33 a0) (42 20) (43 18) (4c 00) (87 D0) (88 3f) (d7 03) (d9 10) (D3 82) (c8 08) (c9 80)
+			  (7C 00) (7D 00) (7C 03) (7D 48) (7D 48) (7C 08) (7D 20) (7D 10) (7D 0e)
+			  (90 00) (91 0e) (91 1a) (91 31) (91 5a) (91 69) (91 75) (91 7e) (91 88) (91 8f) (91 96) (91 a3) (91 af) (91 c4) (91 d7) (91 e8) (91 20)
+			  (92 00) (93 06) (93 e3) (93 03) (93 03) (93 00) (93 02) (93 00) (93 00) (93 00) (93 00) (93 00) (93 00) (93 00) (96 00)
+			  (97 08) (97 19) (97 02) (97 0c) (97 24) (97 30) (97 28) (97 26) (97 02) (97 98) (97 80) (97 00) (97 00)
+			  (a4 00) (a8 00) (c5 11) (c6 51) (bf 80) (c7 10) (b6 66) (b8 A5) (b7 64) (b9 7C) (b3 af) (b4 97) (b5 FF) (b0 C5) (b1 94) (b2 0f) (c4 5c) (a6 00)
+			  (a7 20) (a7 d8) (a7 1b) (a7 31) (a7 00) (a7 18) (a7 20) (a7 d8) (a7 19) (a7 31) (a7 00) (a7 18) (a7 20) (a7 d8) (a7 19) (a7 31) (a7 00) (a7 18)
+			  (7f 00) (e5 1f) (e1 77) (dd 7f) (C2 0E)
+			  (FF 01) (FF 00) (E0 04) (DA 04) ;//08:RGB565  04:RAW10
+			  (D7 03) (E1 77) (E0 00)
+			  (FF 00) (05 01) (5A A0) ;//(w>>2)&0xFF	//28:w=160 //A0:w=640 //C8:w=800
+			  (5B 78) ;//(h>>2)&0xFF	//1E:h=120 //78:h=480 //96:h=600
+			  (5C 00) ;//((h>>8)&0x04)|((w>>10)&0x03)		
+			  (FF 01) (11 80) ;//clkrc=0x83 for resolution <= SVGA		
+			  (FF 01) (12 40) ;/* DSP input image resoultion and window size control */
+			  (03 0A) ;/* UXGA=0x0F, SVGA=0x0A, CIF=0x06 */
+			  (32 09) ;/* UXGA=0x36, SVGA/CIF=0x09 */
+			  (17 11) ;/* UXGA=0x11, SVGA/CIF=0x11 */
+			  (18 43) ;/* UXGA=0x75, SVGA/CIF=0x43 */
+			  (19 00) ;/* UXGA=0x01, SVGA/CIF=0x00 */
+			  (1A 4b) ;/* UXGA=0x97, SVGA/CIF=0x4b */
+			  (3d 38) ;/* UXGA=0x34, SVGA/CIF=0x38 */
+			  (35 da) (22 1a) (37 c3) (34 c0) (06 88) (0d 87) (0e 41) (42 03) (FF 00) ;/* Set DSP input image size and offset. The sensor output image can be scaled with OUTW/OUTH */
+			  (05 01) (E0 04) (C0 64) ;/* Image Horizontal Size 0x51[10:3] */  //11 0010 0000 = 800
+			  (C1 4B) ;/* Image Vertiacl Size 0x52[10:3] */    //10 0101 1000 = 600   
+			  (8C 00) ;/* {0x51[11], 0x51[2:0], 0x52[2:0]} */
+			  (53 00) ;/* OFFSET X[7:0] */
+			  (54 00) ;/* OFFSET Y[7:0] */
+			  (51 C8) ;/* H SIZE[7:0]= 0x51/4 */ //200
+			  (52 96) ;/* V SIZE[7:0]= 0x52/4 */ //150       
+			  (55 00) ;/* V SIZE[8]/OFFSET Y[10:8]/H SIZE[8]/OFFSET X[10:8] */
+			  (57 00) ;/* H SIZE[9] */
+			  (86 3D) (50 80) ;/* H DIVIDER/V DIVIDER */        
+			  (D3 80)	   ;/* DVP prescalar */
+			  (05 00) (E0 00) (FF 00) (05 00)
+			  (FF 00) (E0 04) (DA 04) ;//08:RGB565  04:RAW10
+			  (D7 03) (E1 77) (E0 00)    
+			  )
+			))
+		`(case address
+		   ,@(loop for (e f) in l
+			   and i from 0
+			   collect
+			   `(,(format nil "~3,'0d" i)
+			     (setf sreg ,(format nil "16'h~a_~a" e f))))
+		   (t (setf sreg "16'hFF_FF"))
+		   )))))
   (write-source
    (format nil "~a/source/ov2640_controller.v" *path*)
    `(module ov2640_controller
@@ -168,7 +286,8 @@
 				:command command
 				:finished finished
 				:resend resend))
-	    (make-instance (i2c_interface
+	    (make-instance i2c_interface
+			   (i2c
 			    :clk clk
 			    :taken taken
 			    :siod siod

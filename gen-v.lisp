@@ -68,7 +68,8 @@
 		      (with-open-file (s fn
 					 :direction :output
 					 :if-exists :supersede
-					 :if-does-not-exist :create)			(write-sequence code-str s))
+					 :if-does-not-exist :create)
+			(write-sequence code-str s))
 		      (when format
 			#+nil ("sb-ext:run-program" (string "/usr/bin/iStyle")
 					    (list (string "--style=gnu")  (namestring fn)
@@ -161,7 +162,7 @@
 						do
 						   (outln (string "~a") (emit b)))
 					  (outln (string "end")))))
-				,@(loop for op in `(or + (logior "||")) ;; operators with arbitrary number of arguments
+				,@(loop for op in `(or + (logior "||") (logand "&&")) ;; operators with arbitrary number of arguments
 					collect
 					(if (listp op)
 					    (destructuring-bind (lisp-name verilog-name) op
