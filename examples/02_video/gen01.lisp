@@ -161,7 +161,7 @@
 				  (setf V_cnt V_cnt))
 				 )))
 	  (always-at (or "posedge I_pxl_clk"
-			 "negedge I_rst_n")
+			 "negedge I_rst_n") 
 		     (cond (!I_rst_n
 			    (setf H_cnt "16'd0"))
 			   ((<= (- I_h_total "1'b1")
