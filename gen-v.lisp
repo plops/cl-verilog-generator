@@ -165,7 +165,8 @@
 						do
 						   (outln (string "~a") (emit b)))
 					  (outln (string "end")))))
-				,@(loop for op in `(or + (logior "||") (logand "&&")) ;; operators with arbitrary number of arguments
+				,@(loop for op in `(or (and "&")
+						       + - (logior "||") (logand "&&")) ;; operators with arbitrary number of arguments
 					collect
 					(if (listp op)
 					    (destructuring-bind (lisp-name verilog-name) op
@@ -181,6 +182,16 @@
 					  ,(row `(out (string ,(format nil "(~~a) ~a (~~a)" op))
 						      (emit (first args))
 						      (emit (second args))))))
+				#+nil ,@(loop for op in `("~" (lognot "!")) ;; operators with one argument
+					collect
+					(if (listp op)
+					    (destructuring-bind (lisp-name verilog-name) op
+					      `(,lisp-name
+						,(row `(out (string ,(format nil "~a(~~a)" verilog-name))
+							    (emit (first args))))))
+					    `(,op
+					      ,(row `(out (string ,(format nil "~a(~~a)" op))
+							  (emit (first args)))))))
 			       
 				#+nil(<.
 				      ,(row `(out (string "((~a)<(~a))")
@@ -195,7 +206,7 @@
 				   `(loop for (a b) on args by #'cddr
 					  collect
 					  (outsemiln (string "assign ~a = ~a")
-						     a b))
+						     a (emit b)))
 				   ))
 				(assign=
 				 ,(row

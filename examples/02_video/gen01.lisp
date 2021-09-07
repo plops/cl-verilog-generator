@@ -146,8 +146,8 @@
 	  ,@(loop for e in `(siod sioc taken)
 		  collect
 		  `(assign ,e ,(format nil "~a_temp" e)))
-	  (always-at (or I_pxl_clk
-			   I_rst_n)
+	  (always-at (or "posedge I_pxl_clk"
+			   "negedge I_rst_n")
 		       ;; tristate when idle or siod driven by master
 		       (if !I_rst_n
 			   (setf V_cnt "16'd0")
@@ -160,6 +160,26 @@
 				 (t
 				  (setf V_cnt V_cnt))
 				 )))
+	  (always-at (or "posedge I_pxl_clk"
+			 "negedge I_rst_n")
+		     (cond (!I_rst_n
+			    (setf H_cnt "16'd0"))
+			   ((<= (- I_h_total "1'b1")
+				H_cnt)
+			    (setf H_cnt "16'd0"))
+			   (t
+			    (incf H_cnt "1'b1")))
+		     )
+	  (assign Pout_de_w (and (and (<= (+ I_h_sync I_h_bporch)
+					  H_cnt)
+				      (<= H_cnt
+					  (- (+ I_h_sync I_h_bporch I_h_res )
+					     "1'b1")))
+				 (and (<= (+ I_v_sync I_v_bporch)
+					  V_cnt)
+				      (<= V_cnt
+					  (- (+ I_v_sync I_v_bporch I_v_res )
+					     "1'b1")))))
 	    ))
 
   ;; https://www.uctronics.com/download/cam_module/OV2640DS.pdf v.1.6
