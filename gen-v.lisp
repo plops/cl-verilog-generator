@@ -165,8 +165,9 @@
 						do
 						   (outln (string "~a") (emit b)))
 					  (outln (string "end")))))
-				,@(loop for op in `(or (and "&")
-						       + - (logior "||") (logand "&&")) ;; operators with arbitrary number of arguments
+				,@(loop for op in `(or (and "&") 
+						       + -
+						       (logior "||") (logand "&&")) ;; operators with arbitrary number of arguments
 					collect
 					(if (listp op)
 					    (destructuring-bind (lisp-name verilog-name) op

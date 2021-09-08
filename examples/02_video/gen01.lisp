@@ -170,7 +170,22 @@
 			   (t
 			    (incf H_cnt "1'b1")))
 		     )
-	  (assign Pout_de_w (and (and (<= (+ I_h_sync I_h_bporch)
+	  (assign Pout_de_w (and ,@(loop for dir in `(H V)
+			   collect
+			   (let* ((sdir (string-downcase dir))
+				  (cnt (format nil "~a_cnt" dir))
+				  (sync (format nil "I_~a_sync" sdir))
+				  (bporch (format nil "I_~a_bporch" sdir))
+				  (res (format nil "I_~a_res" sdir)))
+			     `(and (<= (+ ,sync ,bporch)
+				     ,cnt)
+				 (<= ,cnt
+				     (- (+ ,sync
+					 ,bporch
+					 ,res
+					 )
+					"1'b1"))))))
+		  #+nil (and (and (<= (+ I_h_sync I_h_bporch)
 					  H_cnt)
 				      (<= H_cnt
 					  (- (+ I_h_sync I_h_bporch I_h_res )
@@ -180,6 +195,30 @@
 				      (<= V_cnt
 					  (- (+ I_v_sync I_v_bporch I_v_res )
 					     "1'b1")))))
+	  (assign Pout_hs_w (~ (and (<= "16'd0"
+					H_cnt)
+				    (<= H_cnt (- I_h_sync "1'b1"))))
+		  )
+	  (assign Pout_vs_w (~ (and (<= "16'd0"
+					V_cnt)
+				    (<= V_cnt (- I_v_sync "1'b1"))))
+		  )
+	  (assign Rden_w
+		  (and ,@(loop for dir in `(H V)
+			   collect
+			   (let* ((sdir (string-downcase dir))
+				  (cnt (format nil "~a_cnt" dir))
+				  (sync (format nil "I_~a_sync" sdir))
+				  (bporch (format nil "I_~a_bporch" sdir))
+				  (res (format nil "I_rd_~ares" sdir)))
+			     `(and (<= (+ ,sync ,bporch)
+				     ,cnt)
+				 (<= ,cnt
+				     (- (+ ,sync
+					 ,bporch
+					 ,res
+					 )
+					"1'b1")))))))
 	    ))
 
   ;; https://www.uctronics.com/download/cam_module/OV2640DS.pdf v.1.6
