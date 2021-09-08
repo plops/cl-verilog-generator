@@ -219,6 +219,18 @@
 					 ,res
 					 )
 					"1'b1")))))))
+	  (always-at (or "posedge I_pxl_clock"
+			 "negedge I_rst_n")
+		     (if I_rst_n
+			 (setf ,@(loop for e in `(Pout_de Pout_hs Pout_vs Rden)
+				       appending
+				       `(,(format nil "~a_dn" e)
+					 ,(format nil "~a_w" e))))
+			 (setf ,@(loop for (e f) in `((Pout_de 0) ( Pout_hs 1) (Pout_vs 1) (Rden 0))
+				       appending
+				       `(,(format nil "~a_dn" e)
+					 ,(format nil "1'b~a" f))))
+			 ))
 	    ))
 
   ;; https://www.uctronics.com/download/cam_module/OV2640DS.pdf v.1.6
