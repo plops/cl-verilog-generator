@@ -6,7 +6,7 @@
 ;; register parser for ov2640 camera
 
 (let
-    ((l
+    ((l-dsp
        `((0 rsvd)
 	 (5 r-bypass 1 rw (((7 1) rsvd)
 			     ((0) bypass-dsp-select ((0 dsp) (1 bypass)))))
@@ -119,4 +119,58 @@
 	 (fe p-status 0 rw (((7 0) sccb-proto-status-reg)))
 	 (ff ra-dlmt 7f rw (((7 1) rsvd)
 			    ((0) register-bank-sel ((0 dsp)
-						    (1 sensor)))))))))
+						    (1 sensor)))))))
+     (l-sensor
+       `((0 gain 0 rw (((7 0) gain)))
+	 (1 rsvd)
+	 (3 com1 0a rw (((7 6) dummy-frame ((00 rsvd) ;; 0f uxga
+					    (01 allow-1-dummy)
+					    (10 allow-3-dummy)
+					    (11 allow-7-dummy)))
+			((5 4) rsvd)
+			((3 2) (aref win-end-line-ctrl-v (slice 1 0)))
+			((1 0) (aref win-start-line-ctrl-v (slice 1 0)))))
+	 (4 reg4 20 rw (,@(loop for e in `(h-mirror
+					   v-flip
+					   (aref vref 0)
+					   (aref href 0)
+					   rsvd)
+				  and ei from 7 downto 2
+				  collect
+				`((,ei) ,e))
+			((1 0) (aref aec (slice 1 0)))))
+	 (5 rsvd)
+	 (8 reg8 40 rw (((7 0) frame-exp-pre-charge-row)))
+	 (9 com2 0 rw (((7 5) rsvd)
+		       ((4) standby-mode-en ((0 normal)
+					     (1 standby)))
+		       ((3) rsvd)
+		       ((2) pin-pwdn-resetb-as-slvs)
+		       ((1 0) output-drive-sel ((00 1x)
+						(01 3x)
+						(10 2x)
+						(11 4x)))))
+	 (a pidh 26 ro (((7 0) (aref product-id (slice 15 8)))))
+	 (b pidl 41 ro (((7 0) (aref product-id (slice 7 0)))))
+	 (c com3 38 rw (((7 3) rsvd)
+			((2) banding-manual ((0 60hz)
+					     (1 50hz)))
+			((1) banding-auto)
+			((0) snaphot ((0 live-after-snapshot)
+				      (1 single-frame-only)))))
+	 (d rsvd)
+	 (10 aec 33 rw (((7 0) (aref aec (slice 9 2)))))
+	 (11 clkrc 0 rw (((7) internal-freq-double ((0 off)
+						    (1 on)))
+			 ((6) rsvd)
+			 ((5 0) clk-divider)))
+	 (12 com7 0 rw (((7) srst)
+			((6 4) resolution-sel ((000 uxga)
+					       (010 cif)
+					       (100 svga)))
+			((3 ) rsvd)
+			((2) zoom)
+			((1) color-bar-test ((0 off)
+					     (1 on)))
+			((0) rsvd)))
+	 ))))
