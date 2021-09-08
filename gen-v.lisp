@@ -277,6 +277,13 @@
 					    (outln (string "else begin"))
 					    (outln (string "~a") (emit false-statement))
 					    (outln (string "end"))))))
+				(?
+				 ,(row `(destructuring-bind (condition true-expression false-expression)
+					    args
+					  (out (string "(~a) ? (~a) : (~a)")
+					       (emit condition)
+					       (emit true-expression)
+					       (emit false-expression)))))
 				(case
 				    ,(row `(destructuring-bind (keyform
 								&rest clauses)
