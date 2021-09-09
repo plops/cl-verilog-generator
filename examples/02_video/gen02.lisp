@@ -337,9 +337,7 @@
 					;  xbrl
 		       ))
 	     (imports (logging
-		       xbrl
-		       xbrl.cache
-		       xbrl.instance))
+		       ))
 					;"from generated import *"
 					;"from xsdata.formats.dataclass.parsers import XmlParser"
 	     
@@ -366,9 +364,36 @@
 				 (- tz)))))
 	     (setf start_time (time.time)
 		   debug True)
-	     )
+
+
+	     (do0
+	      
+	      #+nil
+	      ((0 rsvd)
+	       (5 r-bypass 1 rw (((7 1) rsvd)
+				 ((0) bypass-dsp-select ((0 dsp) (1 bypass))))))
+	     
+	      ,(let ((names)
+		     (addresses))
+		 (loop for e in l-dsp
+		       do
+			  (destructuring-bind (address reg-name
+					       &optional default permission
+						 parts) e
+			    (let ((address_ (read-from-string (format nil "#x~a" address)))
+				  (default_ (when default
+					      (read-from-string (format nil "#x~a" default)))))
+			      (setf names (append names (list reg-name)))
+			      (setf addresses (append addresses (list address_))))))
+		 `(setf df (pd.DataFrame (dictionary :name (list ,@(mapcar #'(lambda (x)
+									       `(string ,x))
+									   names))
+						     :address (list ,@addresses))
+					 )))
+	      ))
+	   
 	   ))
     (write-source (format nil "~a/~a" *source* *code-file*) code)
     ))
 
-
+(append (list 1 2 3) (list 4))
