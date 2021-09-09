@@ -396,4 +396,3 @@
     (write-source (format nil "~a/~a" *source* *code-file*) code)
     ))
 
-(append (list 1 2 3) (list 4))
