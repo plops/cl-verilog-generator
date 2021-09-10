@@ -405,10 +405,15 @@
 						      :address (list ,@addresses))
 					  ))
 		   ,(let* ((vars-s (sort vars #'string-lessp))
-			   (vars-u (remove-duplicates vars-s :test #'string=)))
+			   (vars-u (remove-duplicates vars-s :test #'string=))
+			   (vars-u-count (loop for v in vars-u collect
+							       (count v vars-s))))
+		      ;; rsvd 15x, hsize 3x
+		      
 		      `(setf dfv (pd.DataFrame (dictionary :var (list ,@(mapcar #'(lambda (x)
 										    `(string ,x))
 										vars-u))
+							   :count (list ,@vars-u-count)
 							   )
 					       )))))
 	      ))
@@ -416,4 +421,3 @@
 	   ))
     (write-source (format nil "~a/~a" *source* *code-file*) code)
     ))
-
