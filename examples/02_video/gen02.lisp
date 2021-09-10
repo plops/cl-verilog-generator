@@ -22,16 +22,19 @@
   (let* ((l-dsp
 	   `((0 rsvd)
 	     (5 r-bypass 1 rw (((7 1) rsvd)
-			       ((0) bypass-dsp-select ((0 dsp) (1 bypass)))))
+			       ((0) bypass-dsp-select ((0 dsp)
+						       (1 bypass)))))
 	     (6 rsvd)
-	     (44 qs 0c rw quantization-scale-factor)
+	     (44 qs 0c rw (((7 0) quantization-scale-factor)))
 	     (45 rsvd)
 	     (50 ctrli 0 rw (((7) lp-dp)
 			     ((6) round)
 			     ((5 3) v-divider)
 			     ((2 0) h-divider)))
-	     (51 hsize 40 rw (((7 0) (aref h-size (slice 7 0)) :type real/4)))
-	     (52 vsize f0 rw (((7 0) (aref v-size (slice 7 0)) :type real/4)))
+	     (51 hsize 40 rw (((7 0) (aref h-size (slice 7 0)) ;:type real/4
+				     )))
+	     (52 vsize f0 rw (((7 0) (aref v-size (slice 7 0)) ; :type real/4
+				     )))
 	     (53 xoffl 0 rw (((7 0) (aref offset-x (slice 7 0)))))
 	     (54 yoffl 0 rw (((7 0) (aref offset-y (slice 7 0)))))
 	     (55 vhyx 8 rw (((7) (aref v-size 8))
@@ -42,8 +45,10 @@
 			    ((3 0) dp-selx)))
 	     (57 test 0 rw (((7) (aref h-size 9))
 			    ((6 0) rsvd)))
-	     (5a zmow 58 rw (((7 0) (aref outw (slice 7 0)) :type real/4)))
-	     (5b zmoh 48 rw (((7 0) (aref outh (slice 7 0)) :type real/4)))
+	     (5a zmow 58 rw (((7 0) (aref outw (slice 7 0)) ;:type real/4
+				    )))
+	     (5b zmoh 48 rw (((7 0) (aref outh (slice 7 0)) ; :type real/4
+				    )))
 	     (5c zmhh 0 rw (((7 4) zoom-speed)
 			    ((2) (aref outh 8))
 			    ((1 0) (aref outw (slice 9 8)))))
@@ -67,8 +72,8 @@
 			     ((5 3) (aref hsize (slice 2 0)))
 			     ((2 0) (aref vsize (slice 2 0)))))
 	     (8d srvd)
-	     (c0 hsize8 80 rw ((7 0) (aref hsize 10 3)))
-	     (c1 vsize8 60 rw ((7 0) (aref vsize 10 3)))
+	     (c0 hsize8 80 rw ((7 0) (aref hsize (slice 10 3))))
+	     (c1 vsize8 60 rw ((7 0) (aref vsize (slice 10 3))))
 	     (c2 ctrl0 0c rw (,@(loop for e in `(aec-en aec-sel stat-sel vfirst yuv422 yuv-en rgb-en raw-en)
 				      and ei from 7 downto 0
 				      collect
@@ -279,7 +284,7 @@
 	 
 	 (code
 	   `(do0
-	     (do0
+	     #+nil (do0
 		  
 	      (imports (matplotlib))
                                         ;(matplotlib.use (string "QT5Agg"))
@@ -330,13 +335,13 @@
 					;cv2
 		       time
 					;edgar
-		       tqdm
+		       ;tqdm
 					;requests
 					;xsdata
 					;generated
 					;  xbrl
 		       ))
-	     (imports (logging
+	    #+nil (imports (logging
 		       ))
 					;"from generated import *"
 					;"from xsdata.formats.dataclass.parsers import XmlParser"
@@ -374,7 +379,8 @@
 				 ((0) bypass-dsp-select ((0 dsp) (1 bypass))))))
 	     
 	      ,(let ((names)
-		     (addresses))
+		     (addresses)
+		     (vars))
 		 (loop for e in l-dsp
 		       do
 			  (destructuring-bind (address reg-name
@@ -384,12 +390,25 @@
 				  (default_ (when default
 					      (read-from-string (format nil "#x~a" default)))))
 			      (setf names (append names (list reg-name)))
-			      (setf addresses (append addresses (list address_))))))
-		 `(setf df (pd.DataFrame (dictionary :name (list ,@(mapcar #'(lambda (x)
-									       `(string ,x))
-									   names))
-						     :address (list ,@addresses))
-					 )))
+			      (setf addresses (append addresses (list address_)))
+			      (loop for part in parts
+				    do
+				       (destructuring-bind (pos var-spec &optional sub-var-specs) part
+					 (let ((var-name (if (listp var-spec)
+							     (second var-spec)
+							     var-spec)))
+					   (setf vars (append vars (list var-name)))))))))
+		 `(do0
+		   (setf df (pd.DataFrame (dictionary :name (list ,@(mapcar #'(lambda (x)
+										`(string ,x))
+									    names))
+						      :address (list ,@addresses))
+					  ))
+		   (setf dfv (pd.DataFrame (dictionary :var (list ,@(mapcar #'(lambda (x)
+										`(string ,x))
+									    vars))
+						      )
+					  ))))
 	      ))
 	   
 	   ))
