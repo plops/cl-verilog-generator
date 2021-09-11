@@ -5,7 +5,7 @@ https://av.tib.eu/media/51913 gowin reverse engineer
 https://github.com/TerosTechnology/vscode-terosHDL verilog helper for vs code documentation with doxygen, wavedrom
 https://www.youtube.com/watch?v=sOKJWAnrbHM DesignStart FPGA 201: Designing Arm Cortex M3 with GOWIN FPGAs
 - tang nano 4k
-- dmesg when plugging in:
+- dmesg when plugging in:https://www.youtube.com/watch?v=D_xxLxWer0c USB2.0 Soft IP: An Introduction to GOWIN Semiconductor's USB Solution for FPGA's
  #+begin_example
 [93093.488562] usb 1-1: new full-speed USB device number 13 using xhci_hcd
 [93093.615089] usb 1-1: not running at top speed; connect to a high speed hub
