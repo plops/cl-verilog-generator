@@ -2,7 +2,8 @@ https://github.com/sipeed/TangNano-4K-example/tree/main/dk_video/project
 http://www.dragonwake.com/download/camera/ov2640/OV2640%20Camera%20Module%20Software%20Application%20Notes.pdf
 https://media.ccc.de/v/33c3-8057-dissecting_hdmi capture hdmi
 https://av.tib.eu/media/51913 gowin reverse engineer
-
+https://github.com/TerosTechnology/vscode-terosHDL verilog helper for vs code documentation with doxygen, wavedrom
+https://www.youtube.com/watch?v=sOKJWAnrbHM DesignStart FPGA 201: Designing Arm Cortex M3 with GOWIN FPGAs
 - tang nano 4k
 - dmesg when plugging in:
  #+begin_example
