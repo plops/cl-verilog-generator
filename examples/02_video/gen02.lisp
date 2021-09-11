@@ -404,7 +404,7 @@
 									    names))
 						      :address (list ,@addresses))
 					  ))
-		   ,(let* ((vars-s (sort vars #'string-lessp))
+		   ,(let* ((vars-s (remove-if #'(lambda (x) (string= x "rsvd")) (sort vars #'string-lessp)))
 			   (vars-u (remove-duplicates vars-s :test #'string=))
 			   (vars-u-count (loop for v in vars-u collect
 							       (count v vars-s))))

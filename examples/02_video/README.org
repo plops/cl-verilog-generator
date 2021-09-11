@@ -1,2 +1,36 @@
 https://github.com/sipeed/TangNano-4K-example/tree/main/dk_video/project
 http://www.dragonwake.com/download/camera/ov2640/OV2640%20Camera%20Module%20Software%20Application%20Notes.pdf
+
+- tang nano 4k
+- dmesg when plugging in:
+ #+begin_example
+[93093.488562] usb 1-1: new full-speed USB device number 13 using xhci_hcd
+[93093.615089] usb 1-1: not running at top speed; connect to a high speed hub
+[93093.616250] usb 1-1: New USB device found, idVendor=0403, idProduct=6010, bcdDevice= 5.00
+[93093.616254] usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[93093.616256] usb 1-1: Product: JTAG Debugger
+[93093.616258] usb 1-1: Manufacturer: SIPEED
+[93093.616259] usb 1-1: SerialNumber: FactoryAIOT Pro
+[93093.646047] usbcore: registered new interface driver ftdi_sio
+[93093.646063] usbserial: USB Serial support registered for FTDI USB Serial Device
+[93093.646104] ftdi_sio 1-1:1.0: FTDI USB Serial Device converter detected
+[93093.646135] usb 1-1: Detected FT2232C
+[93093.646604] usb 1-1: FTDI USB Serial Device converter now attached to ttyUSB0
+[93093.646636] ftdi_sio 1-1:1.1: FTDI USB Serial Device converter detected
+[93093.646653] usb 1-1: Detected FT2232C
+[93093.646839] usb 1-1: FTDI USB Serial Device converter now attached to ttyUSB1
+
+ #+end_example
+- lsusb
+ #+begin_example
+Bus 001 Device 013: ID 0403:6010 Future Technology Devices International, Ltd FT2232C/D/H Dual UART/FIFO IC
+ #+end_example
+
+- start programmer
+  #+begin_example
+cd ~/gowin/b2/programmer/bin
+sudo ./programmer
+Edit->Cable
+select led test fs file
+
+  #+end_example
