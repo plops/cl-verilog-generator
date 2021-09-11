@@ -31,6 +31,9 @@ Bus 001 Device 013: ID 0403:6010 Future Technology Devices International, Ltd FT
 cd ~/gowin/b2/programmer/bin
 sudo ./programmer
 Edit->Cable
+series: GW1NSR
+device: 4C
+operation: SRAM program
 select led test fs file
 
   #+end_example
