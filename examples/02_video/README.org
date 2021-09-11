@@ -31,9 +31,19 @@ Bus 001 Device 013: ID 0403:6010 Future Technology Devices International, Ltd FT
 cd ~/gowin/b2/programmer/bin
 sudo ./programmer
 Edit->Cable
+- make sure it shows something like gowin usb cable ft2ch
+configure device
 series: GW1NSR
 device: 4C
 operation: SRAM program
 select led test fs file
-
   #+end_example
+
+- store video fs with persistance
+#+begin_example
+device config
+embedded flash mode
+embflash erase, program, verify
+ - i get erase failed
+#+end_example
+- video to hdmi display works
