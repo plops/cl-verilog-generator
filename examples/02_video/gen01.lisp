@@ -717,5 +717,18 @@
 		    (concat (aref PIXDATA (slice 9 5))
 			    (aref PIXDATA (slice 9 4))
 			    (aref PIXDATA (slice 9 5))))
+	    #+nil 
+	    ,@(loop for (e f g) in `((clk I_clk PIXCLK)
+				     (vs ~tp0_vs_in VSYNC) de data))
+	    ,@(loop for (e f) in `((clk PIXCLK)
+				     (vs VSYNC)
+				     (de HREF)
+				   (data cam_data))
+		    collect
+		    `(assign ,(format nil "ch0_vfb_~a_in" e)
+			     ,f))
+	    (make-instance Video_Frame_Buffer_Top
+			   (Video_Frame_Buffer_Top_inst
+			   ))
 	    
 	    )))
