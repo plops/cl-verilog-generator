@@ -87,7 +87,7 @@
 			do
 		       (destructuring-bind (section-name &rest variable-clauses) section
 			 (format s (string "~&[~a]~%") section-name)
-			 (format s (string "~{~a~%~}")
+			 (format s (string "~{~a~%~}~%")
 				 (loop for (var val) in variable-clauses
 				       collect
 				       (format nil (string "~a=~a") var val)))))))
