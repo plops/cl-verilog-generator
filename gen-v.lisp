@@ -61,7 +61,7 @@
 		  (multiple-value-bind (old-code-hash exists) (gethash fn-hash *file-hashes*)
 		    (when (or (not exists) ignore-hash (/= code-hash old-code-hash)
 			      (not (probe-file fn)))
-		      ;; store the sxhash of the c source in the hash table
+		      ;; store the sxhash of the verilog source in the hash table
 		      ;; *file-hashes* with the key formed by the sxhash of the full
 		      ;; pathname
 		      (setf (gethash fn-hash *file-hashes*) code-hash)
@@ -80,7 +80,39 @@
 					      (list (string "-i")
 						    (string "/^[[:space:]]*$/d")
 						    (namestring fn)
-						  ))))))))
+						    )))))))
+	      (defun emit-ipc (&key sections)
+		(with-output-to-string (s)
+		  (loop for section in sections
+			do
+		       (destructuring-bind (section-name &rest variable-clauses) section
+			 (format s (string "~&[~a]~%") section-name)
+			 (format s (string "~{~a~%~}")
+				 (loop for (var val) in variable-clauses
+				       collect
+				       (format nil (string "~a=~a") var val)))))))
+	      (defun write-ipc (name code &key
+					    (dir (user-homedir-pathname))
+					    ignore-hash
+					    (format nil))
+		(let* ((fn (merge-pathnames (format nil (string "~a") name)
+					    dir))
+		       (code-str (emit-ipc :sections code))
+		       (fn-hash (sxhash fn))
+		       (code-hash (sxhash code-str)))
+		  (multiple-value-bind (old-code-hash exists) (gethash fn-hash *file-hashes*)
+		    (when (or (not exists) ignore-hash (/= code-hash old-code-hash)
+			      (not (probe-file fn)))
+		      ;; store the sxhash of the ipc source in the hash table
+		      ;; *file-hashes* with the key formed by the sxhash of the full
+		      ;; pathname
+		      (setf (gethash fn-hash *file-hashes*) code-hash)
+		      (with-open-file (s fn
+					 :direction :output
+					 :if-exists :supersede
+					 :if-does-not-exist :create)
+			(write-sequence code-str s))
+		      )))))
 
 	     (defun emit-v (&key
 			      code

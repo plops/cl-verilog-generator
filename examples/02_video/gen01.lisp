@@ -12,6 +12,7 @@
       "Sunday"))
   ;; https://github.com/sipeed/TangNano-4K-example/blob/main/dk_video/project/src/ov2640/I2C_Interface.v
   ;; http://www4.cs.umanitoba.ca/~jacky/Teaching/Courses/74.795-LocalVision/ReadingList/ov-sccb.pdf
+  
   (write-ipc
    (format nil "~a/source/GW_PLLVR.ipc" *path*)
    `((General
@@ -22,7 +23,8 @@
       (type clock_pllvr)
       (version 1.0))
      (Config
-      (CLKOUTD3 false)
+					;(CLKOUTD3 false)
+      (CKLOUTD3 false)
       (CLKFB_SOURCE 0)
       (CLKIN_FREQ 27)
       (CLKOUTD false)
