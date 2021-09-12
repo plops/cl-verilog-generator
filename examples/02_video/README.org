@@ -50,3 +50,7 @@ embflash erase, program, verify
  - i get erase failed
 #+end_example
 - video to hdmi display works
+
+- generate ipc files
+- create tcl files to compile the project
+  - can i also call the ip core generator via tcl?
