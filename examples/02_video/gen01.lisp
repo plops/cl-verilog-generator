@@ -67,6 +67,7 @@
 
 ;; device: GW1NSR-LV4CQN48PC6/I5
 ;; GW1NSR-LV4CQN48PC6/I5
+;; cp ~/stage/cl-verilog-generator/examples/02_video/source/*.{v,cst,sdc,ipc} /home/martin/gowin_fpga/b2/IDE/bin/fpga_project_xam/src
 
 (progn
   (defparameter *path* "/home/martin/stage/cl-verilog-generator/examples/02_video")
@@ -532,6 +533,83 @@
 	     "inout siod"
 	     "output reset"
 	     "output pwdn")
+	    ,@(loop for e in `((command 15)
+			       (finished)
+			       (taken)
+			       )
+		    collect
+		    (destructuring-bind (name &optional size default) e
+		      (format nil "wire ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+	    ,@(loop for e in `((send :default 0)
+			       
+			       )
+		    collect
+		    (destructuring-bind (name &key size default) e
+		      (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+	    (assign config_finished finished
+		    reset 1
+		    pwdn 0)
+	    (always-at finished
+		       (assign= send ~finished))
+	    (make-instance ov2640_registers
+			   (lut :clk clk
+				:advance taken
+				:command command
+				:finished finished
+				:resend resend))
+	    (make-instance i2c_interface
+			   (i2c
+			    :clk clk
+			    :taken taken
+			    :siod siod
+			    :sioc sioc
+			    :send send
+			    :rega (aref command (slice 15 8))
+			    :value (aref command (slice 7 0)))
+			   )
+	    ))
+  (write-source
+   (format nil "~a/source/video_top.v" *path*)
+   `(module video_top
+	    ("input I_clk"		
+	     "input I_rst_n"
+	     "output [1:0] O_led"
+	     "inout SDA"
+	     "inout SCL"
+	     ,@(loop for e in `(VSYNC
+				HREF
+				(PIXDATA 9)
+				PIXCLK
+				)
+		     collect
+		     (format nil "input ~a"
+			     (if (listp e)
+				 (format nil "[~a:0] ~a" (second e) (first e))
+				 e)))
+	     ,@(loop for e in `(XCLK
+				(O_hpram_ck 0)
+				(O_hpram_ck_n 0)
+				(O_hpram_cs_n 0)
+				(O_hpram_reset_n 0)
+				O_tmds_clk_p
+				O_tmds_clk_n
+				(O_tmds_data_p 2)
+				(O_tmds_data_n 2)
+				)
+		     collect
+		     (format nil "output ~a"
+			     (if (listp e)
+				 (format nil "[~a:0] ~a" (second e) (first e))
+				 e)))
+	     ,@(loop for e in `((IO_hpram_dq 7)
+				(IO_hpram_rwds 0))
+		     collect
+		     (format nil "inout ~a"
+			     (if (listp e)
+				 (format nil "[~a:0] ~a" (second e) (first e))
+				 e)))
+	     )
+	    
 	    ,@(loop for e in `((command 15)
 			       (finished)
 			       (taken)
