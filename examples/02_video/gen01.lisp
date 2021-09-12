@@ -8,7 +8,6 @@
 
 (progn
   (defparameter *path* "/home/martin/stage/cl-verilog-generator/examples/02_video")
-  
   (write-source
    (format nil "~a/source/dk_video.sdc" *path*)
    `(do0
@@ -17,10 +16,26 @@
 	       (serial_clk 2.694 1.347 get_nets)
 	       (pix_clk 13.468 6.734 get_nets))
 	     collect
-	     `(create_clock :name ,name 
+	     `(create_clock :name ,name
 			    :period ,period
 			    :waveform (quote 0 ,n)
 			    :add (bracket (,fn (quote ,name)))))
+     ))
+  (write-source
+   (format nil "~a/source/dk_video.cst" *path*)
+   `(do0
+     ,@(loop for e in `((O_tmds_clk_p      ((comma 28 27))  ("PULL_MODE=NONE" "DRIVE=3.5"))
+			("O_tmds_dat_p[0]" ((comma 30 29))  ("PULL_MODE=NONE" "DRIVE=3.5"))
+			("O_tmds_dat_p[1]" ((comma 32 31))  ("PULL_MODE=NONE" "DRIVE=3.5"))
+			("O_tmds_dat_p[2]" ((comma 35 34))  ("PULL_MODE=NONE" "DRIVE=3.5"))
+			("XCLK"            (33)             ("IO_TYPE=LVCMOS25" "PULL_MODE=NONE" "DRIVE=8")))
+	     collect
+	     (destructuring-bind (name location-args port-args) e
+	       `(semi
+		(IO_LOC (string ,name)
+			,@location-args)
+		(IO_PORT (string ,name)
+			 ,@port-args))))
      ))
   )
 
