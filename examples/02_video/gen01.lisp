@@ -1,6 +1,22 @@
 (eval-when (:compile-toplevel :execute :load-toplevel)
   (ql:quickload "cl-verilog-generator")
+  (ql:quickload "cl-tcl-generator")
   (ql:quickload "alexandria"))
+
+
+(in-package :cl-tcl-generator)
+
+(progn
+  (defparameter *path* "/home/martin/stage/cl-verilog-generator/examples/02_video")
+  
+  (write-source
+   (format nil "~a/source/dk_video.sdc" *path*)
+   `(do0
+     (create_clock :name I_clk :period 37.037 :waveform (quote 0 18.518) :add (bracket (get_ports (quote I_clk)))
+		  )
+     ))
+  )
+
 
 (in-package :cl-verilog-generator)
 
