@@ -1,0 +1,23 @@
+- can i do this on an fpga:
+  https://news.ycombinator.com/item?id=28471644
+#+begin_example
+	
+	
+jws 2 days ago [–]
+
+LEDs work both ways. I wrote a tutorial on doing this with an Arduino sometime in the early 2000s. I've forgotten most of it, so this is going to be vague…
+
+• Instead of driving your LED from one live pin to ground or power, put it between two pins (with its current limiting resistor unless your microcontroller can safely limit the current and you can tolerate the heat in package (RP2040!))
+
+• Forward bias (say pin 1 high, pin 2 low) to illuminate.
+
+• Reverse bias briefly (pin 1 low, pin 2 high) to charge the stray capacitance of your pin 2 driver. Then turn pin 2 into an input and time how long it takes to change from a "1" to a "0".
+
+Your LED is going to be matching up photons and electrons and passing electrons across. It isn't great at this compared to a photodiode, but it does do it. If the current flow through the LED is at least in the ball park of the input current on pin 2 you will be able to tell the difference in light levels.
+
+It's crude, and may not be workable at all in low light levels because the input pin current will dwarf the LED current.
+
+But for compliance checking in FB Glass, the camera knows when it is in bright light, and if the LED disagrees, then you have covered your LED. The cost to implement is one package pin and a little software.
+
+Note: I am not necessarily known as nefarious. I used it to automatically modulate the brightness of indicator LEDs. Bright in the day, dimmer in the dark. The time to sense is short enough that you can do it with your indicator and no one notices the tiny dark interval. 
+#+end_example
