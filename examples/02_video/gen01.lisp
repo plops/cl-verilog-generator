@@ -13,33 +13,48 @@
   ;; https://github.com/sipeed/TangNano-4K-example/blob/main/dk_video/project/src/ov2640/I2C_Interface.v
   ;; http://www4.cs.umanitoba.ca/~jacky/Teaching/Courses/74.795-LocalVision/ReadingList/ov-sccb.pdf
   
-  (write-ipc
-   (format nil "~a/source/GW_PLLVR.ipc" *path*)
-   `((General
-      (ipc_version 4)
-      (file GW_PLLVR)
-      (module GW_PLLVR)
-      (target_device gw1nsr4c-009)
-      (type clock_pllvr)
-      (version 1.0))
-     (Config
-					;(CLKOUTD3 false)
-      (CKLOUTD3 false)
-      (CLKFB_SOURCE 0)
-      (CLKIN_FREQ 27)
-      (CLKOUTD false)
-      (CLKOUTP false)
-      (CLKOUT_BYPASS false)
-      (CLKOUT_DIVIDE_DYN true)
-      (CLKOUT_FREQ 159)
-      (CLKOUT_TOLERANCE 0)
-      (DYNAMIC true)
-      (LANG 0)
-      (LOCK_EN true)
-      (MODE_GENERAL true)
-      (PLL_PWD false)
-      (PLL_REGULATOR false)
-      (RESET_PLL false))))
+  (loop for e in `((GW_PLLVR
+		    (CLKOUTD false)
+		    (CLKOUT_FREQ 159)
+		    (DYNAMIC true)
+		    (CLKOUT_TOLERANCE 0))
+		   
+		   (TMDS_PLLVR
+		    (CLKOUTD true)
+		    (CLKOUTD_BYPASS false)
+		    (CLKOUTD_FREQ 12.5)
+		    (CLKOUTD_SOURCE_CLKOUT true)
+		    (CLKOUTD_TOLERANCE 3)
+		    (CLKOUT_FREQ 371.25)
+		    (DYNAMIC false)
+		    (CLKOUT_TOLERANCE 1)
+		    ))
+	do
+	   (destructuring-bind (ipc-name &rest clauses) e
+	    (write-ipc
+	     (format nil "~a/source/~a.ipc"  *path* ipc-name)
+	     `((General
+		(ipc_version 4)
+		(file ,ipc-name)
+		(module ,ipc-name)
+		(target_device gw1nsr4c-009)
+		(type clock_pllvr)
+		(version 1.0))
+	       (Config
+		(CKLOUTD3 false)
+		(CLKFB_SOURCE 0)
+		(CLKIN_FREQ 27)
+		,@clauses
+		(CLKOUTP false)
+		(CLKOUT_BYPASS false)
+		(CLKOUT_DIVIDE_DYN true)
+		(LANG 0)
+		(LOCK_EN true)
+		(MODE_GENERAL true)
+		(PLL_PWD false)
+		(PLL_REGULATOR false)
+		(RESET_PLL false))))))
+  #+nil
   (write-ipc
    (format nil "~a/source/TMDS_PLLVR.ipc" *path*)
    `((General
@@ -50,7 +65,6 @@
       (type clock_pllvr)
       (version 1.0))
      (Config
-					;(CLKOUTD3 false)
       (CKLOUTD3 false)
       (CLKFB_SOURCE 0)
       (CLKIN_FREQ 27)
@@ -62,7 +76,7 @@
       (CLKOUTP false)
       (CLKOUT_BYPASS false)
       (CLKOUT_DIVIDE_DYN true)
-      (CLKOUT_FREQ 371.25)
+      
       (CLKOUT_TOLERANCE 1)
       (DYNAMIC false)
       (LANG 0)
