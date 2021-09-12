@@ -12,8 +12,15 @@
   (write-source
    (format nil "~a/source/dk_video.sdc" *path*)
    `(do0
-     (create_clock :name I_clk :period 37.037 :waveform (quote 0 18.518) :add (bracket (get_ports (quote I_clk)))
-		  )
+     ,@(loop for (name period n fn) in
+	     `((I_clk 37.037 18.518 get_ports)
+	       (serial_clk 2.694 1.347 get_nets)
+	       (pix_clk 13.468 6.734 get_nets))
+	     collect
+	     `(create_clock :name ,name
+			    :period ,period
+			    :waveform (quote 0 ,n)
+			    :add (bracket (,fn (quote ,name)))))
      ))
   )
 
