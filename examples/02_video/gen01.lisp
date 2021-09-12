@@ -12,79 +12,82 @@
       "Sunday"))
   ;; https://github.com/sipeed/TangNano-4K-example/blob/main/dk_video/project/src/ov2640/I2C_Interface.v
   ;; http://www4.cs.umanitoba.ca/~jacky/Teaching/Courses/74.795-LocalVision/ReadingList/ov-sccb.pdf
-  
-  (loop for e in `((GW_PLLVR
-		    (CLKOUTD false)
-		    (CLKOUT_FREQ 159)
-		    (DYNAMIC true)
-		    (CLKOUT_TOLERANCE 0))
+
+  (let ((device 'gw1nsr4c-009)
+	(fabric-clk 159))
+   (loop for e in `((GW_PLLVR
+		     (CLKOUTD false)
+		     (CLKOUT_FREQ ,fabric-clk)
+		     (DYNAMIC true)
+		     (CLKOUT_TOLERANCE 0))
 		   
-		   (TMDS_PLLVR
-		    (CLKOUTD true)
-		    (CLKOUTD_BYPASS false)
-		    (CLKOUTD_FREQ 12.5)
-		    (CLKOUTD_SOURCE_CLKOUT true)
-		    (CLKOUTD_TOLERANCE 3)
-		    (CLKOUT_FREQ 371.25)
-		    (DYNAMIC false)
-		    (CLKOUT_TOLERANCE 1)
-		    ))
-	do
-	   (destructuring-bind (ipc-name &rest clauses) e
-	    (write-ipc
-	     (format nil "~a/source/~a.ipc"  *path* ipc-name)
-	     `((General
-		(ipc_version 4)
-		(file ,ipc-name)
-		(module ,ipc-name)
-		(target_device gw1nsr4c-009)
-		(type clock_pllvr)
-		(version 1.0))
-	       (Config
-		(CKLOUTD3 false)
-		(CLKFB_SOURCE 0)
-		(CLKIN_FREQ 27)
-		,@clauses
-		(CLKOUTP false)
-		(CLKOUT_BYPASS false)
-		(CLKOUT_DIVIDE_DYN true)
-		(LANG 0)
-		(LOCK_EN true)
-		(MODE_GENERAL true)
-		(PLL_PWD false)
-		(PLL_REGULATOR false)
-		(RESET_PLL false))))))
-  #+nil
-  (write-ipc
-   (format nil "~a/source/TMDS_PLLVR.ipc" *path*)
-   `((General
-      (ipc_version 4)
-      (file TMDS_PLLVR)
-      (module TMDS_PLLVR)
-      (target_device gw1nsr4c-009)
-      (type clock_pllvr)
-      (version 1.0))
-     (Config
-      (CKLOUTD3 false)
-      (CLKFB_SOURCE 0)
-      (CLKIN_FREQ 27)
-      (CLKOUTD true)
-      (CLKOUTD_BYPASS false)
-      (CLKOUTD_FREQ 12.5)
-      (CLKOUTD_SOURCE_CLKOUT true)
-      (CLKOUTD_TOLERANCE 3)
-      (CLKOUTP false)
-      (CLKOUT_BYPASS false)
-      (CLKOUT_DIVIDE_DYN true)
-      
-      (CLKOUT_TOLERANCE 1)
-      (DYNAMIC false)
-      (LANG 0)
-      (LOCK_EN true)
-      (MODE_GENERAL true)
-      (PLL_PWD false)
-      (PLL_REGULATOR false)
-      (RESET_PLL false))))
+		    (TMDS_PLLVR
+		     (CLKOUTD true)
+		     (CLKOUTD_BYPASS false)
+		     (CLKOUTD_FREQ 12.5)
+		     (CLKOUTD_SOURCE_CLKOUT true)
+		     (CLKOUTD_TOLERANCE 3)
+		     (CLKOUT_FREQ 371.25)
+		     (DYNAMIC false)
+		     (CLKOUT_TOLERANCE 1)
+		     ))
+	 do
+	    (destructuring-bind (ipc-name &rest clauses) e
+	      (write-ipc
+	       (format nil "~a/source/~a.ipc"  *path* ipc-name)
+	       `((General
+		  (ipc_version 4)
+		  (file ,ipc-name)
+		  (module ,ipc-name)
+		  (target_device ,device)
+		  (type clock_pllvr)
+		  (version 1.0))
+		 (Config
+		  (CKLOUTD3 false)
+		  (CLKFB_SOURCE 0)
+		  (CLKIN_FREQ 27)
+		  ,@clauses
+		  (CLKOUTP false)
+		  (CLKOUT_BYPASS false)
+		  (CLKOUT_DIVIDE_DYN true)
+		  (LANG 0)
+		  (LOCK_EN true)
+		  (MODE_GENERAL true)
+		  (PLL_PWD false)
+		  (PLL_REGULATOR false)
+		  (RESET_PLL false))))))
+
+    (let ((name "hyperram_memory_interface")
+	  )
+      (write-ipc
+       (format nil "~a/source/~a.ipc"  *path* name)
+       `((General
+	  (ipc_version 4)
+	  (file ,name)
+	  (module HyperRAM_Memory_Interface_Top)
+	  (target_device ,device)
+	  (type hyperram_emb)
+	  (version 1.0))
+	 (Config
+	  (BURST_MODE 128)
+	  (CLK_TYPE DIFF)
+	  (DEEP_POWER_DOWN OFF)
+	  (DISABLE_IO true)
+	  (DQ_WIDTH 8)
+	  (DRIVE_STRENGTH 34)
+	  (HYBRID_SLEEP_MODE OFF)
+	  (INITIAL_LATENCY 6)
+	  (LANG 0)
+	  (MEMORY_CLK ,fabric-clk)
+	  (MEMORY_TYPE W956x8MKY)
+	  (PASR full)
+	  (PSRAM_WIDTH 8)
+	  (REFRESH_RATE normal)
+	  (SIMULATION false)
+	  (Synthesis_tool GowinSynthesis)
+	  )))))
+
+  
   (write-source
    (format nil "~a/source/i2c_interface.v" *path*)
    `(module i2c_interface
