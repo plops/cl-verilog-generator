@@ -158,7 +158,7 @@
 	  (ipc_version 4)
 	  (file ,name)
 	  (module DVI_TX_Top)
-1	  (target_device ,device)
+	  (target_device ,device)
 	  (type ,name)
 	  (version 1.0))
 	 (Config
@@ -610,38 +610,112 @@
 				 e)))
 	     )
 	    
-	    ,@(loop for e in `((command 15)
-			       (finished)
-			       (taken)
+	    ,@(loop for e in `((running)
+			       ;(tp0_vs_in)
+			       ;(tp0_hs_in)
+			       ;(tp0_de_in)
+			       #+nil ,@(loop for e in `(r g b)
+				       collect
+				       `(,(format nil "tp0_data_~a" e) :size 7 ))
+			       (cam_data :size 15)
+			       ,@(loop for e in `(re vs hs)
+				       collect
+				       `(,(format nil "syn_off0_~a" e)))
+			       (off0_syn_de)
+			       (off0_syn_data :size 15)
+			       (dma_clk)
+			       (memory_clk)
+			       (mem_pll_lock)
+			       (cmd)
+			       (cmd_en)
+			       (addr :size 21)
+			       (wr_data :size 31)
+			       (data_mask :size 3)
+			       (rd_data_valid)
+			       (rd_data :size 31)
+			       (init_calib)
+			       ,@(loop for e in `(re vs hs)
+				       collect
+				       `(,(format nil "rgb_~a" e)))
+			       (rgb_data :size 23)
+			       ;; hdmi
+			       (serial_clk)
+			       (pll_lock)
+			       (hdmi_rst_n)
+			       (pix_clk)
+			       (clk_12M)
+			       
 			       )
 		    collect
 		    (destructuring-bind (name &optional size default) e
 		      (format nil "wire ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
-	    ,@(loop for e in `((send :default 0)
+	    ,@(loop for e in `((run_cnt :size 31
+					)
+			       (vs_r)
+			       (cnt_vs :size 9)
+			       (pixdata_dl :size 9)
+			       (hcnt)
 			       
 			       )
 		    collect
 		    (destructuring-bind (name &key size default) e
 		      (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
-	    (assign config_finished finished
-		    reset 1
-		    pwdn 0)
-	    (always-at finished
+
+	    (always-at (or "posedge I_clk"
+			   "negedge I_rst_n")
+		       (cond (!I_rst_n
+			      (setf run_cnt "32'd0"))
+			     ((<= "32'd27_000_000"
+				  run_cnt)
+			      (setf run_cnt "32'd0"))
+			     (t
+			      (incf run_cnt "1'b1"))
+			     )
 		       (assign= send ~finished))
-	    (make-instance ov2640_registers
-			   (lut :clk clk
-				:advance taken
-				:command command
-				:finished finished
-				:resend resend))
-	    (make-instance i2c_interface
-			   (i2c
-			    :clk clk
-			    :taken taken
-			    :siod siod
-			    :sioc sioc
-			    :send send
-			    :rega (aref command (slice 15 8))
-			    :value (aref command (slice 7 0)))
-			   )
+	    (assign running (? (< run_cnt
+				  "32'd13_500_000")
+			       "1'b1"
+			       "1'b0")
+		    (aref O_led 0) running
+		    (aref O_led 1) ~init_calib
+		    XCLK clk_12M)
+	    (always-at (or "posedge I_clk"
+			   "negedge I_rst_n")
+		       (cond (!I_rst_n
+			      (setf cnt_vs 0))
+			     ((== cnt_vs "10'h3ff")
+			      (setf cnt_vs cnt_vs))
+			     (vs_r ;; tp0_vs_in
+			      (incf cnt_v))
+			     (t
+			      (setf cnt_v cnt_v))))
+	   
+	    (make-instance ov2640_controller
+			   (u_ov2640_controller
+			    :clk clk_12M
+			    :resend "1'b0"
+			    :config_finished ""
+			    :sioc SCL
+			    :siod SDA
+			    :reset ""
+			    :pwdn ""))
+	    (always-at (or "posedge PIXCLK"
+			   "negedge I_rst_n")
+		       (cond (!I_rst_n
+			      (setf pixdata_dl "10'd0"))
+			     (t
+			      (setf pixdata_dl PIXDATA))))
+	    (always-at (or "posedge PIXCLK"
+			   "negedge I_rst_n")
+		       (cond (!I_rst_n
+			      (setf hcnt "1'd0"))
+			     (HREF
+			      (setf hcnt ~hcnt))
+			     (t
+			      (setf hcnt "1'd0"))))
+	    (assign cam_data
+		    (concat (aref PIXDATA (slice 9 5))
+			    (aref PIXDATA (slice 9 4))
+			    (aref PIXDATA (slice 9 5))))
+	    
 	    )))
