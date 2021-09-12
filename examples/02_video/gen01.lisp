@@ -17,7 +17,7 @@
 	       (serial_clk 2.694 1.347 get_nets)
 	       (pix_clk 13.468 6.734 get_nets))
 	     collect
-	     `(create_clock :name ,name
+	     `(create_clock :name ,name 
 			    :period ,period
 			    :waveform (quote 0 ,n)
 			    :add (bracket (,fn (quote ,name)))))
