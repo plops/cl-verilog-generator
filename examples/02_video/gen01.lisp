@@ -28,7 +28,28 @@
 			("O_tmds_dat_p[0]" ((comma 30 29))  ("PULL_MODE=NONE" "DRIVE=3.5"))
 			("O_tmds_dat_p[1]" ((comma 32 31))  ("PULL_MODE=NONE" "DRIVE=3.5"))
 			("O_tmds_dat_p[2]" ((comma 35 34))  ("PULL_MODE=NONE" "DRIVE=3.5"))
-			("XCLK"            (33)             ("IO_TYPE=LVCMOS25" "PULL_MODE=NONE" "DRIVE=8")))
+			("XCLK"            (33)             ("IO_TYPE=LVCMOS25" "PULL_MODE=NONE" "DRIVE=8"))
+			("O_led[0]"        (10)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
+			(SCL        (44)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
+			(SDA        (46)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
+			(PIXCLK        (41)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
+			(HREF        (42)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
+			(VSYNC        (43)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
+			(I_rst_n        (14)             ("PULL_MODE=UP")) ;; why not lvcmos33?
+			(I_clk        (45)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
+			,@(loop for (f g) in `((9 40)
+					    (8 39)
+					    (7 23)
+					    (6 16)
+					    (5 18)
+					    (4 20)
+					    (3 19)
+					    (2 17)
+					    (1 21)
+					    (0 22))
+				collect
+				`(,(format nil "PIXDATA[~a]" f)        (,g)             ("PULL_MODE=UP")))
+			)
 	     collect
 	     (destructuring-bind (name location-args port-args) e
 	       `(semi
