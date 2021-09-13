@@ -668,6 +668,130 @@
 		    collect
 		    (destructuring-bind (name &key size default) e
 		      (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+	    (always-at
+	     (or "posedge I_pxl_clk"
+		 "negedge I_rst_n")
+	     ;; generate hs, vs and de signals
+	     (if !I_rst_n
+		 (setf V_cnt "12'd0")
+		 (cond ((&& (<= (- I_v_total "1'b1")
+				V_cnt)
+			    (<= (- I_h_total "1'b1")
+				H_cnt))
+			(setf V_cnt "12'd0")
+			)
+		       ((<= (- I_h_total "1'b1")
+			    H_cnt)
+			(incf V_cnt "1'b1"))
+		       (t (setf V_cnt V_cnt))))
+	     )
+
+	    (always-at
+	     (or "posedge I_pxl_clk"
+		 "negedge I_rst_n")
+	     
+	     (cond (!I_rst_n
+		    (setf H_cnt "12'd0")
+		    
+		    )
+		   ((<= (- I_h_total "1'b1")
+			H_cnt)
+		    (setf H_cnt "12'd0")
+		    )
+		   (t (incf H_cnt "1'b1")))
+	     )
+	    (assign Pout_de_w (and ,@(loop for dir in `(H V)
+					   collect
+					   (let* ((sdir (string-downcase dir))
+						  (cnt (format nil "~a_cnt" dir))
+						  (sync (format nil "I_~a_sync" sdir))
+						  (bporch (format nil "I_~a_bporch" sdir))
+						  (res (format nil "I_~a_res" sdir)))
+					     `(and (<= (+ ,sync ,bporch)
+						       ,cnt)
+						   (<= ,cnt
+						       (- (+ ,sync
+							     ,bporch
+							     ,res
+							     )
+							  "1'b1")))))))
+	    (assign Pout_hs_w (~ (and (<= "12'd0"
+					  H_cnt)
+				      (<= H_cnt (- I_h_sync "1'b1"))))
+		    )
+	    (assign Pout_vs_w (~ (and (<= "12'd0"
+					  V_cnt)
+				      (<= V_cnt (- I_v_sync "1'b1"))))
+		    )
+	    
+	    (always-at
+	     (or "posedge I_pxl_clk"
+		 "negedge I_rst_n")
+	     
+	     (cond ((!I_rst_n)
+		    (setf Pout_de_dn "{N{1'b0}}"
+			  Pout_hs_dn "{N{1'b1}}"
+			  Pout_vs_dn "{N{1'b1}}"))
+		   (t (setf Pout_de_dn (concat (aref Pout_de_dn (slice (-N 2) 0))
+					     Pout_de_w)
+			  Pout_hs_dn (concat (aref Pout_hs_dn (slice (-N 2) 0))
+					     Pout_hs_w)
+			  Pout_vs_dn (concat (aref Pout_vs_dn (slice (-N 2) 0))
+					     Pout_vs_w)
+			  )))
+	     )
+	    ;; consider data alignment
+	    (assign O_de (aref Pout_de_dn 4))
+
+	    (always-at
+	     (or "posedge I_pxl_clk"
+		 "negedge I_rst_n")
+	     
+	     (cond ((!I_rst_n)
+		    (setf O_hs "1'b1"
+			  O_vs "1'b1"))
+		   (t (setf O_hs (? I_hs_pol
+				  (aref ~Pout_hs_dn 3)
+				  (aref Pout_hs_dn 3))
+			  O_vs (? I_vs_pol
+				  (aref ~Pout_vs_dn 3)
+				  (aref Pout_vs_dn 3))
+			  )))
+	     )
+
+	    ;; test pattern
+	    ;; rising edge of de
+	    (assign De_pos (& (aref !Pout_de_dn 1)
+			      (aref Pout_de_dn 0)))
+	    (assign Vs_pos (& (aref !Pout_vs_dn 1)
+			      (aref Pout_vs_dn 0)))
+	    (assign De_neg (& (aref Pout_de_dn 1)
+			      (aref !Pout_de_dn 0)))
+
+	    (always-at
+	     (or "posedge I_pxl_clk"
+		 "negedge I_rst_n")
+	     (cond ((!I_rst_n)
+		    (setf De_hcnt "12'd0"))
+		   ((== De_pos "1'b1")
+		    (setf De_hcnt "12'd0"))
+		   ((== (aref Pout_de_dn 1) "1'b1")
+		    (incf De_hcnt "1'b1"))
+		   (t
+		    (setf De_hcnt De_hcnt))))
+
+	    (always-at
+	     (or "posedge I_pxl_clk"
+		 "negedge I_rst_n")
+	     (cond ((!I_rst_n)
+		    (setf De_vcnt "12'd0"))
+		   ((== Vs_pos "1'b1")
+		    (setf De_vcnt "12'd0"))
+		   ((== De_neg "1'b1")
+		    (incf De_vcnt "1'b1"))
+		   (t
+		    (setf De_vcnt De_vcnt))))
+
 	    
 	    ))
   (write-source
