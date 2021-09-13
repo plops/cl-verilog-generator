@@ -577,223 +577,285 @@
   (write-source
    (format nil "~a/source/testpattern.v" *path*)
    `(module testpattern
-	    (,@(loop for e in `(pxl_clk
-				rst_n
-				(mode 2)
-				(single_r 7)
-				(single_g 7)
-				(single_b 7)
-				(h_total 11)
-				(h_sync 11)
-				(h_bporch 11)
-				(h_res 11)
-				(v_total 11)
-				(v_sync 11)
-				(v_bporch 11)
-				(v_res 11)
-				hs_pol
-				vs_pol
-				)
-		     collect
-		     (format nil "input ~a"
-			     (if (listp e)
-				 (format nil "[~a:0] I_~a" (second e) (first e))
-				 e)))
-	     ,@(loop for e in `(O_de
-				"reg O_hs"
-				"reg O_vs"
-				(O_data_r 7)
-				(O_data_g 7)
-				(O_data_b 7))
-		     collect
-		     (format nil "output ~a"
-			     (if (listp e)
-				 (format nil "[~a:0] ~a" (second e) (first e))
-				 e))))
-	    "localparam N=5;"
-	    ;; bgr
-	    ,@(loop for (name b g r) in `((white 1 1 1)
-					  (yellow 0 1 1)
-					  (cyan 1 1 0)
-					  (green 0 1 0)
-					  (magenta 1 0 1)
-					  (red 0 0 1)
-					  (blue 1 0 0)
-					  (black 0 0 0))
-		    collect
-		    (format nil "localparam ~a = {{~{8'd~a~^,~}}};"
-			    (string-upcase (format nil "~a" name))
-			    (list (* 255 b)
-				  (* 255 g)
-				  (* 255 r))))
+		       
+		       ( ,@(loop for e in `(pxl_clk
+						       rst_n
+						       (mode 2)
+						       (single_r 7)
+						       (single_g 7)
+						       (single_b 7)
+						       (h_total 11)
+						       (h_sync 11)
+						       (h_bporch 11)
+						       (h_res 11)
+						       (v_total 11)
+						       (v_sync 11)
+						       (v_bporch 11)
+						       (v_res 11)
+						       hs_pol
+						       vs_pol
+						       )
+					    collect
+					    (format nil "input ~a"
+						    (if (listp e)
+							(format nil "[~a:0] I_~a" (second e) (first e))
+							e)))
+			          ,@(loop for e in `(O_de
+							   "reg O_hs"
+							   "reg O_vs"
+							   (O_data_r 7)
+							   (O_data_g 7)
+							   (O_data_b 7))
+						collect
+						(format nil "output ~a"
+							(if (listp e)
+							    (format nil "[~a:0] ~a" (second e) (first e))
+							    e))))
+		         "localparam N=5;"
+		       ;; bgr
+		          ,@(loop for (name b g r) in `((white 1 1 1)
+							     (yellow 0 1 1)
+							     (cyan 1 1 0)
+							     (green 0 1 0)
+							     (magenta 1 0 1)
+							     (red 0 0 1)
+							     (blue 1 0 0)
+							     (black 0 0 0))
+				       collect
+				       (format nil "localparam ~a = {{~{8'd~a~^,~}}};"
+					       (string-upcase (format nil "~a" name))
+					       (list (* 255 b)
+						     (* 255 g)
+						     (* 255 r))))
 
-	    ,@(loop for e in `((Pout_de_w)
-			       (Pout_hs_w)
-			       (Pout_vs_w)
-			       (De_pos)
-			       (De_neg)
-			       (Vs_pos)
-			       (Net_pos :size 1)
-			       (Single_color :size 23
-					     )
-			       (Data_sel :size 23))
-		    collect
-		    (destructuring-bind (name &key size default) e
-		      (format nil "wire ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
-	    ,@(loop for e in `((V_cnt :size 11)
-			       (H_cnt :size 11)
-			       (Pout_de_dn :size N-1)
-			       (Pout_hs_dn :size N-1)
-			       (Pout_vs_dn :size N-1)
-			       (De_vcnt :size 11)
-			       (De_hcnt :size 11)
-			       (De_hcnt_d1 :size 11)
-			       (De_hcnt_d2 :size 11)
-			       ;; color bar
-			       (Color_trig_num :size 11)
-			       (Color_trig)
-			       (Color_cnt :size 3)
-			       (Color_bar :size 23)
-			       ;; net grid
-			       (Net_h_trig)
-			       (Net_v_trig)
+		           ,@(loop for e in `((Pout_de_w)
+						   (Pout_hs_w)
+						   (Pout_vs_w)
+						   (De_pos)
+						   (De_neg)
+						   (Vs_pos)
+						   (Net_pos :size 1)
+						   (Single_color :size 23
+								 )
+						   (Data_sel :size 23))
+					collect
+					(destructuring-bind (name &key size default) e
+					  (format nil "wire ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+		           ,@(loop for e in `((V_cnt :size 11)
+						   (H_cnt :size 11)
+						   (Pout_de_dn :size N-1)
+						   (Pout_hs_dn :size N-1)
+						   (Pout_vs_dn :size N-1)
+						   (De_vcnt :size 11)
+						   (De_hcnt :size 11)
+						   (De_hcnt_d1 :size 11)
+						   (De_hcnt_d2 :size 11)
+						   ;; color bar
+						   (Color_trig_num :size 11)
+						   (Color_trig)
+						   (Color_cnt :size 3)
+						   (Color_bar :size 23)
+						   ;; net grid
+						   (Net_h_trig)
+						   (Net_v_trig)
+						   
+						   (Net_grid :size 23)
+						   ;; gray
+						   (Gray :size 23)
+						   (Gray_d1 :size 23)
+						   (Data_tmp :size 23)
+						   
+						   )
+					collect
+					(destructuring-bind (name &key size default) e
+					  (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+		        (do0 (always-at
+				   (or "posedge I_pxl_clk"
+				       "negedge I_rst_n")
+				   ;; generate hs, vs and de signals
+				   (if !I_rst_n
+				       (setf V_cnt "12'd0")
+				       (cond ((&& (<= (- I_v_total "1'b1")
+						      V_cnt)
+						  (<= (- I_h_total "1'b1")
+						      H_cnt))
+					      (setf V_cnt "12'd0")
+					      )
+					     ((<= (- I_h_total "1'b1")
+						  H_cnt)
+					      (incf V_cnt "1'b1"))
+					     (t (setf V_cnt V_cnt)))))
+
+				  (always-at
+				   (or "posedge I_pxl_clk"
+				       "negedge I_rst_n")
+				   
+				   (cond (!I_rst_n
+					  (setf H_cnt "12'd0")
+					  
+					  )
+					 ((<= (- I_h_total "1'b1")
+					      H_cnt)
+					  (setf H_cnt "12'd0")
+					  )
+					 (t (incf H_cnt "1'b1")))
+				   ))
+		        (do0
+			      (assign Pout_de_w (and ,@(loop for dir in `(H V)
+							     collect
+							     (let* ((sdir (string-downcase dir))
+								    (cnt (format nil "~a_cnt" dir))
+								    (sync (format nil "I_~a_sync" sdir))
+								    (bporch (format nil "I_~a_bporch" sdir))
+								    (res (format nil "I_~a_res" sdir)))
+							       `(and (<= (+ ,sync ,bporch)
+									 ,cnt)
+								     (<= ,cnt
+									 (- (+ ,sync
+									       ,bporch
+									       ,res
+									       )
+									    "1'b1")))))))
+			      (assign Pout_hs_w (~ (and (<= "12'd0"
+							    H_cnt)
+							(<= H_cnt (- I_h_sync "1'b1"))))
+				      )
+			      (assign Pout_vs_w (~ (and (<= "12'd0"
+							    V_cnt)
+							(<= V_cnt (- I_v_sync "1'b1"))))
+				      )
+			      
+			      (always-at
+			       (or "posedge I_pxl_clk"
+				   "negedge I_rst_n")
 			       
-			       (Net_grid :size 23)
-			       ;; gray
-			       (Gray :size 23)
-			       (Gray_d1 :size 23)
-			       (Data_tmp :size 23)
+			       (cond ((!I_rst_n)
+				      (setf Pout_de_dn "{N{1'b0}}"
+					    Pout_hs_dn "{N{1'b1}}"
+					    Pout_vs_dn "{N{1'b1}}"))
+				     (t (setf Pout_de_dn (concat (aref Pout_de_dn (slice (-N 2) 0))
+								 Pout_de_w)
+					      Pout_hs_dn (concat (aref Pout_hs_dn (slice (-N 2) 0))
+								 Pout_hs_w)
+					      Pout_vs_dn (concat (aref Pout_vs_dn (slice (-N 2) 0))
+								 Pout_vs_w)
+					      )))
+			       ))
+		        (do0 
+			      ;; consider data alignment
+			      (assign O_de (aref Pout_de_dn 4))
+
+			      (always-at
+			       (or "posedge I_pxl_clk"
+				   "negedge I_rst_n")
 			       
-			       )
-		    collect
-		    (destructuring-bind (name &key size default) e
-		      (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
-	    (always-at
-	     (or "posedge I_pxl_clk"
-		 "negedge I_rst_n")
-	     ;; generate hs, vs and de signals
-	     (if !I_rst_n
-		 (setf V_cnt "12'd0")
-		 (cond ((&& (<= (- I_v_total "1'b1")
-				V_cnt)
-			    (<= (- I_h_total "1'b1")
-				H_cnt))
-			(setf V_cnt "12'd0")
-			)
-		       ((<= (- I_h_total "1'b1")
-			    H_cnt)
-			(incf V_cnt "1'b1"))
-		       (t (setf V_cnt V_cnt))))
-	     )
+			       (cond ((!I_rst_n)
+				      (setf O_hs "1'b1"
+					    O_vs "1'b1"))
+				     (t (setf O_hs (? I_hs_pol
+						      (aref ~Pout_hs_dn 3)
+						      (aref Pout_hs_dn 3))
+					      O_vs (? I_vs_pol
+						      (aref ~Pout_vs_dn 3)
+						      (aref Pout_vs_dn 3))
+					      )))
+			       ))
+		        (do0
+			      ;; test pattern
+			      ;; rising edge of de
+			      (assign De_pos (& (aref !Pout_de_dn 1)
+						(aref Pout_de_dn 0)))
+			      (assign Vs_pos (& (aref !Pout_vs_dn 1)
+						(aref Pout_vs_dn 0)))
+			      (assign De_neg (& (aref Pout_de_dn 1)
+						(aref !Pout_de_dn 0)))
 
-	    (always-at
-	     (or "posedge I_pxl_clk"
-		 "negedge I_rst_n")
-	     
-	     (cond (!I_rst_n
-		    (setf H_cnt "12'd0")
-		    
-		    )
-		   ((<= (- I_h_total "1'b1")
-			H_cnt)
-		    (setf H_cnt "12'd0")
-		    )
-		   (t (incf H_cnt "1'b1")))
-	     )
-	    (assign Pout_de_w (and ,@(loop for dir in `(H V)
-					   collect
-					   (let* ((sdir (string-downcase dir))
-						  (cnt (format nil "~a_cnt" dir))
-						  (sync (format nil "I_~a_sync" sdir))
-						  (bporch (format nil "I_~a_bporch" sdir))
-						  (res (format nil "I_~a_res" sdir)))
-					     `(and (<= (+ ,sync ,bporch)
-						       ,cnt)
-						   (<= ,cnt
-						       (- (+ ,sync
-							     ,bporch
-							     ,res
-							     )
-							  "1'b1")))))))
-	    (assign Pout_hs_w (~ (and (<= "12'd0"
-					  H_cnt)
-				      (<= H_cnt (- I_h_sync "1'b1"))))
-		    )
-	    (assign Pout_vs_w (~ (and (<= "12'd0"
-					  V_cnt)
-				      (<= V_cnt (- I_v_sync "1'b1"))))
-		    )
-	    
-	    (always-at
-	     (or "posedge I_pxl_clk"
-		 "negedge I_rst_n")
-	     
-	     (cond ((!I_rst_n)
-		    (setf Pout_de_dn "{N{1'b0}}"
-			  Pout_hs_dn "{N{1'b1}}"
-			  Pout_vs_dn "{N{1'b1}}"))
-		   (t (setf Pout_de_dn (concat (aref Pout_de_dn (slice (-N 2) 0))
-					     Pout_de_w)
-			  Pout_hs_dn (concat (aref Pout_hs_dn (slice (-N 2) 0))
-					     Pout_hs_w)
-			  Pout_vs_dn (concat (aref Pout_vs_dn (slice (-N 2) 0))
-					     Pout_vs_w)
-			  )))
-	     )
-	    ;; consider data alignment
-	    (assign O_de (aref Pout_de_dn 4))
+			      (always-at
+			       (or "posedge I_pxl_clk"
+				   "negedge I_rst_n")
+			       (cond ((!I_rst_n)
+				      (setf De_hcnt "12'd0"))
+				     ((== De_pos "1'b1")
+				      (setf De_hcnt "12'd0"))
+				     ((== (aref Pout_de_dn 1) "1'b1")
+				      (incf De_hcnt "1'b1"))
+				     (t
+				      (setf De_hcnt De_hcnt))))
 
-	    (always-at
-	     (or "posedge I_pxl_clk"
-		 "negedge I_rst_n")
-	     
-	     (cond ((!I_rst_n)
-		    (setf O_hs "1'b1"
-			  O_vs "1'b1"))
-		   (t (setf O_hs (? I_hs_pol
-				  (aref ~Pout_hs_dn 3)
-				  (aref Pout_hs_dn 3))
-			  O_vs (? I_vs_pol
-				  (aref ~Pout_vs_dn 3)
-				  (aref Pout_vs_dn 3))
-			  )))
-	     )
-
-	    ;; test pattern
-	    ;; rising edge of de
-	    (assign De_pos (& (aref !Pout_de_dn 1)
-			      (aref Pout_de_dn 0)))
-	    (assign Vs_pos (& (aref !Pout_vs_dn 1)
-			      (aref Pout_vs_dn 0)))
-	    (assign De_neg (& (aref Pout_de_dn 1)
-			      (aref !Pout_de_dn 0)))
-
-	    (always-at
-	     (or "posedge I_pxl_clk"
-		 "negedge I_rst_n")
-	     (cond ((!I_rst_n)
-		    (setf De_hcnt "12'd0"))
-		   ((== De_pos "1'b1")
-		    (setf De_hcnt "12'd0"))
-		   ((== (aref Pout_de_dn 1) "1'b1")
-		    (incf De_hcnt "1'b1"))
-		   (t
-		    (setf De_hcnt De_hcnt))))
-
-	    (always-at
-	     (or "posedge I_pxl_clk"
-		 "negedge I_rst_n")
-	     (cond ((!I_rst_n)
-		    (setf De_vcnt "12'd0"))
-		   ((== Vs_pos "1'b1")
-		    (setf De_vcnt "12'd0"))
-		   ((== De_neg "1'b1")
-		    (incf De_vcnt "1'b1"))
-		   (t
-		    (setf De_vcnt De_vcnt))))
-
-	    
-	    ))
+			      (always-at
+			       (or "posedge I_pxl_clk"
+				   "negedge I_rst_n")
+			       (cond ((!I_rst_n)
+				      (setf De_vcnt "12'd0"))
+				     ((== Vs_pos "1'b1")
+				      (setf De_vcnt "12'd0"))
+				     ((== De_neg "1'b1")
+				      (incf De_vcnt "1'b1"))
+				     (t
+				      (setf De_vcnt De_vcnt)))))
+		       
+		       (do0 ;; color bar
+			(always-at
+			 (or "posedge I_pxl_clk"
+			     "negedge I_rst_n")
+			 (cond ((!I_rst_n)
+				(setf Color_trig_num  "12'd0"))
+			       ((== (aref Pout_de_dn 1) "1'b1")
+				(setf Color_trig_num  (aref I_h_res (slice 11 3))))
+			       ((&& (== Color_trig "1'b1")
+				    (== (aref Pout_de_dn 1) "1'b1"))
+				(incf Color_trig_num (aref I_h_res (slice 11 3))))
+			       (t
+				(setf Color_trig_num
+				      Color_trig_num))))
+			(always-at
+			 (or "posedge I_pxl_clk"
+			     "negedge I_rst_n")
+			 (cond ((!I_rst_n)
+				(setf Color_trig "1'd0"))
+			       ((== De_hcnt (- Color_trig_num "1'b1"))
+				(setf Color_trig "1'b1"))
+			       (t
+				(setf Color_trig "1'b0"))))
+			(always-at
+			 (or "posedge I_pxl_clk"
+			     "negedge I_rst_n")
+			 (cond ((!I_rst_n)
+				(setf Color_cnt "3'd0"))
+			       ((== (aref Pout_de_dn 1) "1'b0")
+				(setf Color_cnt "3'b0"))
+			       ((&& (== Color_trig "1'b1")
+				    (== (aref Pout_de_dn 1)
+					"1'b1"))
+				(incf Color_cnt "1'b1"))
+			       (t
+				(setf Color_cnt Color_cnt))))
+			(always-at
+			 (or "posedge I_pxl_clk"
+			     "negedge I_rst_n")
+			 (cond ((!I_rst_n)
+				(setf Color_bar "24'd0"))
+			       ((== (aref Pout_de_dn 2) "1'b1")
+				(case Color_cnt
+				  ,@(loop for e in `(WHITE
+						     YELLOW
+						     CYAN
+						     GREEN
+						     MAGENTA
+						     RED
+						     BLUE
+						     BLACK
+						     )
+					  and ei from 0
+					  collect
+					  `(,(format nil "3'd~a" ei)
+					    (setf Color_bar ,e)))
+				  (t (setf Color_bar BLACK))))
+			       (t
+				 (setf Color_bar BLACK))))
+		
+			)))
+  
   (write-source
    (format nil "~a/source/video_top.v" *path*)
    `(module video_top
@@ -837,12 +899,12 @@
 	     )
 	    
 	    ,@(loop for e in `((running)
-			       ;(tp0_vs_in)
-			       ;(tp0_hs_in)
-			       ;(tp0_de_in)
+					;(tp0_vs_in)
+					;(tp0_hs_in)
+					;(tp0_de_in)
 			       #+nil ,@(loop for e in `(r g b)
-				       collect
-				       `(,(format nil "tp0_data_~a" e) :size 7 ))
+					     collect
+					     `(,(format nil "tp0_data_~a" e) :size 7 ))
 			       (cam_data :size 15)
 			       ,@(loop for e in `(re vs hs)
 				       collect
@@ -897,7 +959,7 @@
 			     (t
 			      (incf run_cnt "1'b1"))
 			     )
-		       ;(assign= send ~finished)
+					;(assign= send ~finished)
 		       )
 	    (assign running (? (< run_cnt
 				  "32'd13_500_000")
@@ -916,7 +978,7 @@
 			      (incf cnt_vs))
 			     (t
 			      (setf cnt_vs cnt_vs))))
-	   
+	    
 	    (make-instance ov2640_controller
 			   (u_ov2640_controller
 			    :clk clk_12M
@@ -948,8 +1010,8 @@
 	    ,@(loop for (e f g) in `((clk I_clk PIXCLK)
 				     (vs ~tp0_vs_in VSYNC) de data))
 	    ,@(loop for (e f) in `((clk PIXCLK)
-				     (vs VSYNC)
-				     (de HREF)
+				   (vs VSYNC)
+				   (de HREF)
 				   (data cam_data))
 		    collect
 		    `(assign ,(format nil "ch0_vfb_~a_in" e)
@@ -1052,9 +1114,9 @@
 			       (Pout_vs_dn "N-1")
 			       (Pout_de_dn "N-1")
 			       )
-		  collect
-		  (destructuring-bind (name &optional size default) e
-		    (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+		    collect
+		    (destructuring-bind (name &optional size default) e
+		      (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
 	    (always-at (or "posedge pix_clk"
 			   "negedge hdmi_rst_n")
 		       (if !hdmi_rst_n
@@ -1080,35 +1142,35 @@
 		    rgb_vs (aref Pout_vs_dn 4)
 		    rgb_hs (aref Pout_hs_dn 4)
 		    rgb_de (aref Pout_de_dn 4))
-	     (make-instance TMDS_PLLVR
+	    (make-instance TMDS_PLLVR
 			   (TMDS_PLLVR_inst
 			    :clkin I_clk
 			    :clkout serial_clk
 			    :clkoutd clk_12M
 			    :lock pll_lock
 			    ))
-	     (assign hdmi_rst_n (and I_rst_n pll_lock))
-	     (make-instance CLKDIV
+	    (assign hdmi_rst_n (and I_rst_n pll_lock))
+	    (make-instance CLKDIV
 			   (u_clkdiv
 			    :RESETN hdmi_rst_n
 			    :HCLKIN serial_clk ;; 5x
 			    :CLKOUT pix_clk ;; 1x
 			    :CALIB "1'b1"
 			    ))
-	     "defparam u_clkdiv.DIV_MODE=\"5\";"
-	     (make-instance DVI_TX_Top
-			    (DVI_TX_Top_inst
-			     :I_rst_n hdmi_rst_n
-			     :I_serial_clk serial_clk
-			     :I_rgb_clk pix_clk
-			     :I_rgb_vs rgb_vs
-			     :I_rgb_hs rgb_hs
-			     :I_rgb_de rgb_de
-			     :I_rgb_r (aref rgb_data (slice 23 16))
-			     :I_rgb_g (aref rgb_data (slice 15 8))
-			     :I_rgb_b (aref rgb_data (slice 7 0))
-			     :O_tmds_clk_p O_tmds_clk_p
-			     :O_tmds_clk_n O_tmds_clk_n
-			     :O_tmds_data_p O_tmds_data_p
-			     :O_tmds_data_n O_tmds_data_n))
+	    "defparam u_clkdiv.DIV_MODE=\"5\";"
+	    (make-instance DVI_TX_Top
+			   (DVI_TX_Top_inst
+			    :I_rst_n hdmi_rst_n
+			    :I_serial_clk serial_clk
+			    :I_rgb_clk pix_clk
+			    :I_rgb_vs rgb_vs
+			    :I_rgb_hs rgb_hs
+			    :I_rgb_de rgb_de
+			    :I_rgb_r (aref rgb_data (slice 23 16))
+			    :I_rgb_g (aref rgb_data (slice 15 8))
+			    :I_rgb_b (aref rgb_data (slice 7 0))
+			    :O_tmds_clk_p O_tmds_clk_p
+			    :O_tmds_clk_n O_tmds_clk_n
+			    :O_tmds_data_p O_tmds_data_p
+			    :O_tmds_data_n O_tmds_data_n))
 	    )))
