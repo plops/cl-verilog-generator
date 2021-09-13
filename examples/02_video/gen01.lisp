@@ -729,7 +729,7 @@
 			       (or "posedge I_pxl_clk"
 				   "negedge I_rst_n")
 			       
-			       (cond ((!I_rst_n)
+			       (cond (!I_rst_n
 				      (setf Pout_de_dn "{N{1'b0}}"
 					    Pout_hs_dn "{N{1'b1}}"
 					    Pout_vs_dn "{N{1'b1}}"))
@@ -749,7 +749,7 @@
 			       (or "posedge I_pxl_clk"
 				   "negedge I_rst_n")
 			       
-			       (cond ((!I_rst_n)
+			       (cond (!I_rst_n
 				      (setf O_hs "1'b1"
 					    O_vs "1'b1"))
 				     (t (setf O_hs (? I_hs_pol
@@ -773,7 +773,7 @@
 			      (always-at
 			       (or "posedge I_pxl_clk"
 				   "negedge I_rst_n")
-			       (cond ((!I_rst_n)
+			       (cond (!I_rst_n
 				      (setf De_hcnt "12'd0"))
 				     ((== De_pos "1'b1")
 				      (setf De_hcnt "12'd0"))
@@ -785,7 +785,7 @@
 			      (always-at
 			       (or "posedge I_pxl_clk"
 				   "negedge I_rst_n")
-			       (cond ((!I_rst_n)
+			       (cond (!I_rst_n
 				      (setf De_vcnt "12'd0"))
 				     ((== Vs_pos "1'b1")
 				      (setf De_vcnt "12'd0"))
@@ -794,11 +794,12 @@
 				     (t
 				      (setf De_vcnt De_vcnt)))))
 		       
-		       (do0 ;; color bar
+
+			(do0 ;; color bar
 			(always-at
 			 (or "posedge I_pxl_clk"
 			     "negedge I_rst_n")
-			 (cond ((!I_rst_n)
+			 (cond (!I_rst_n
 				(setf Color_trig_num  "12'd0"))
 			       ((== (aref Pout_de_dn 1) "1'b1")
 				(setf Color_trig_num  (aref I_h_res (slice 11 3))))
@@ -811,7 +812,7 @@
 			(always-at
 			 (or "posedge I_pxl_clk"
 			     "negedge I_rst_n")
-			 (cond ((!I_rst_n)
+			 (cond (!I_rst_n
 				(setf Color_trig "1'd0"))
 			       ((== De_hcnt (- Color_trig_num "1'b1"))
 				(setf Color_trig "1'b1"))
@@ -820,7 +821,7 @@
 			(always-at
 			 (or "posedge I_pxl_clk"
 			     "negedge I_rst_n")
-			 (cond ((!I_rst_n)
+			 (cond (!I_rst_n
 				(setf Color_cnt "3'd0"))
 			       ((== (aref Pout_de_dn 1) "1'b0")
 				(setf Color_cnt "3'b0"))
@@ -833,7 +834,7 @@
 			(always-at
 			 (or "posedge I_pxl_clk"
 			     "negedge I_rst_n")
-			 (cond ((!I_rst_n)
+			 (cond (!I_rst_n
 				(setf Color_bar "24'd0"))
 			       ((== (aref Pout_de_dn 2) "1'b1")
 				(case Color_cnt
@@ -854,7 +855,100 @@
 			       (t
 				 (setf Color_bar BLACK))))
 		
-			)))
+			)
+			,(flet ((defpix (&key reset clauses)
+				  `(always-at
+				    (or "posedge I_pxl_clk"
+					"negedge I_rst_n")
+				    (cond (!I_rst_n
+					   ,@reset)
+					  ,@clauses
+					  (t
+					   ,@reset)))))
+			   `(do0
+			     (do0
+			      ;; net grid
+			      ,(defpix :reset `((setf Net_h_trig "1'b0"))
+				       :clauses `(((logior (== (aref De_hcnt (slice 4 0))
+							       "5'd0")
+							   (== De_hcnt 
+							       (- I_h_res "1'b1"))
+							   (== (aref Pout_de_dn 1)
+							       "1'b1"))
+						   (setf Net_h_trig "1'b1"))))
+
+			      ,(defpix :reset `((setf Net_v_trig "1'b0"))
+				       :clauses `(((logior (== (aref De_vcnt (slice 4 0))
+							       "5'd0")
+							   (== De_hcnt 
+							       (- I_v_res "1'b1"))
+							   (== (aref Pout_de_dn 1)
+							       "1'b1"))
+						   (setf Net_v_trig "1'b1"))))
+			      (assign Net_pos (concat Net_v_trig
+						      Net_h_trig))
+			      ,(defpix :reset `((setf Net_grid BLACK))
+				       :clauses `(((== (aref Pout_de_dn 2)
+						       "1'b1")
+						   (case Net_pos
+						     ,@(loop for e in `(BLACK RED RED RED)
+							     and ei from 0
+							     collect
+							     `(,(format nil "2'd~2,'0d" ei)
+							       (setf Net_grid ,e)))
+						     (t (setf Net_grid BLACK)))))))
+			     (do0
+			      ;; gray
+			      (always-at
+			       (or "posedge I_pxl_clk"
+				   "negedge I_rst_n")
+			       (cond (!I_rst_n
+				      (setf Gray "24'd0"))
+				     (t
+				      (setf Gray (concat (aref De_hcnt (slice 7 0))
+							 (aref De_hcnt (slice 7 0))
+							 (aref De_hcnt (slice 7 0)))))))
+			      (always-at
+			       (or "posedge I_pxl_clk"
+				   "negedge I_rst_n")
+			       (cond (!I_rst_n
+				      (setf Gray_d1 "24'd0"))
+				     (t
+				      (setf Gray_d1 Gray)))))
+			     (do0
+			      ;; single color
+			      (assign Single_color (concat I_single_b
+							   I_single_g
+							   I_single_r)
+				      Data_sel (? (== (aref I_mode (slice 2 0))
+						      "3'b000")
+						  Color_bar
+						  (? (== (aref I_mode (slice 2 0))
+							 "3'b001")
+						     Net_grid
+						     (? (== (aref I_mode (slice 2 0))
+							    "3'b010")
+							Gray_d1
+							(? (== (aref I_mode (slice 2 0))
+							       "3'b011")
+							   Single_color
+							   GREEN)))))
+			      (always-at
+			       (or "posedge I_pxl_clk"
+				   "negedge I_rst_n")
+			       (cond (!I_rst_n
+				      (setf Data_tmp "24'd0"))
+				     (t
+				      (setf Data_tmp Data_sel))))
+			      ,@(loop for (e a b) in `((r 7 0)
+						       (g 15 8)
+						       (b 23 16))
+				      collect
+				      `(assign ,(format nil "O_data_~a" e)
+					       (aref Data_tmp (slice ,a ,b))))
+			      )
+			    
+			    ))))
   
   (write-source
    (format nil "~a/source/video_top.v" *path*)
