@@ -626,6 +626,49 @@
 			    (list (* 255 b)
 				  (* 255 g)
 				  (* 255 r))))
+
+	    ,@(loop for e in `((Pout_de_w)
+			       (Pout_hs_w)
+			       (Pout_vs_w)
+			       (De_pos)
+			       (De_neg)
+			       (Vs_pos)
+			       (Net_pos :size 1)
+			       (Single_color :size 23
+					     )
+			       (Data_sel :size 23))
+		    collect
+		    (destructuring-bind (name &key size default) e
+		      (format nil "wire ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+	    ,@(loop for e in `((V_cnt :size 11)
+			       (H_cnt :size 11)
+			       (Pout_de_dn :size N-1)
+			       (Pout_hs_dn :size N-1)
+			       (Pout_vs_dn :size N-1)
+			       (De_vcnt :size 11)
+			       (De_hcnt :size 11)
+			       (De_hcnt_d1 :size 11)
+			       (De_hcnt_d2 :size 11)
+			       ;; color bar
+			       (Color_trig_num :size 11)
+			       (Color_trig)
+			       (Color_cnt :size 3)
+			       (Color_bar :size 23)
+			       ;; net grid
+			       (Net_h_trig)
+			       (Net_v_trig)
+			       
+			       (Net_grid :size 23)
+			       ;; gray
+			       (Gray :size 23)
+			       (Gray_d1 :size 23)
+			       (Data_tmp :size 23)
+			       
+			       )
+		    collect
+		    (destructuring-bind (name &key size default) e
+		      (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+	    
 	    ))
   (write-source
    (format nil "~a/source/video_top.v" *path*)
