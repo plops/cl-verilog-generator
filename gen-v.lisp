@@ -80,6 +80,11 @@
 					      (list (string "-i")
 						    (string "/^[[:space:]]*$/d")
 						    (namestring fn)
+						    ))
+			("sb-ext:run-program" (string "/usr/bin/sed")
+					      (list (string "-i")
+						    (string "/^[[:space:]]*;$/d")
+						    (namestring fn)
 						    )))))))
 	      (defun emit-ipc (&key sections)
 		(with-output-to-string (s)
@@ -197,7 +202,7 @@
 						do
 						   (outln (string "~a") (emit b)))
 					  (outln (string "end")))))
-				,@(loop for op in `(or (and "&") 
+				,@(loop for op in `((and "&") 
 						       + -
 						       (logior "||") (logand "&&")) ;; operators with arbitrary number of arguments
 					collect
@@ -209,6 +214,11 @@
 					    `(,op
 					      ,(row `(out (string ,(format nil "~~{(~~a)~~^ ~a ~~}" op))
 							  (emits args))))))
+				,@(loop for op in `(or) ;; operators with arbitrary number of arguments
+					collect
+					`(,op
+					  ,(row `(out (string ,(format nil "~~{~~a~~^ ~a ~~}" op))
+						      (emits args)))))
 				,@(loop for op in `(< <= ==) ;; operators with two arguments
 					collect
 					`(,op
@@ -239,7 +249,7 @@
 				   `(loop for (a b) on args by #'cddr
 					  collect
 					  (outsemiln (string "assign ~a = ~a")
-						     a (emit b)))
+						     (emit a) (emit b)))
 				   ))
 				(assign=
 				 ,(row

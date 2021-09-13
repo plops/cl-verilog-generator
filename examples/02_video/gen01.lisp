@@ -27,14 +27,14 @@
    (format nil "~a/source/dk_video.cst" *path*)
    `(do0
      ,@(loop for e in `((O_tmds_clk_p      ((comma 28 27))  ("PULL_MODE=NONE" "DRIVE=3.5"))
-			("O_tmds_dat_p[0]" ((comma 30 29))  ("PULL_MODE=NONE" "DRIVE=3.5"))
-			("O_tmds_dat_p[1]" ((comma 32 31))  ("PULL_MODE=NONE" "DRIVE=3.5"))
-			("O_tmds_dat_p[2]" ((comma 35 34))  ("PULL_MODE=NONE" "DRIVE=3.5"))
+			("O_tmds_data_p[0]" ((comma 30 29))  ("PULL_MODE=NONE" "DRIVE=3.5"))
+			("O_tmds_data_p[1]" ((comma 32 31))  ("PULL_MODE=NONE" "DRIVE=3.5"))
+			("O_tmds_data_p[2]" ((comma 35 34))  ("PULL_MODE=NONE" "DRIVE=3.5"))
 			("XCLK"            (33)             ("IO_TYPE=LVCMOS25" "PULL_MODE=NONE" "DRIVE=8"))
 			("O_led[0]"        (10)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
 			(SCL        (44)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
 			(SDA        (46)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
-			(PIXCLK        (41)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
+			(PIXCLK        (41)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
 			(HREF        (42)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
 			(VSYNC        (43)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
 			(I_rst_n        (14)             ("PULL_MODE=UP")) ;; why not lvcmos33?
@@ -201,7 +201,7 @@
      (format nil "~a/source/i2c_interface.v" *path*)
      `(module i2c_interface
 	      ("input clk"		;; 50MHz
-	       "input siod"		;; SCCB data signal
+	       "inout siod"		;; SCCB data signal
 	       "output sioc"		;; SCCB clock signal
 	       "output taken" ;; flag to go to next address of LUT
 	       "input send" ;; flag to indicate if configuration has finished
@@ -241,7 +241,7 @@
 		    (if (== send 1)
 			(if (== divider "8'b0000_0000")
 			    (setf data_sr (concat "3'b100"
-						  id
+						  "8'h42" ; id
 						  "1'b0"
 						  rega
 						  "1'b0"
@@ -322,13 +322,17 @@
 		  collect
 		  (destructuring-bind (name &optional size default) e
 		    (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
-	  ,@(loop for e in `(de_w hs_w vs_w de_dn hs_dn vs_dn)
+	  ,@(loop for e in `(de_w hs_w vs_w)
 		  collect
-		  (format nil "wire Pout_~a" e))
+		  (format nil "wire Pout_~a;" e))
+	  ,@(loop for e in `(de_dn hs_dn vs_dn)
+		  collect
+		  (format nil "reg Pout_~a;" e))
 	  ,@(loop for e in `(Rden_w)
 		  collect
-		  (format nil "wire ~a" e))
-	  ,@(loop for e in `(siod sioc taken)
+		  (format nil "wire ~a;" e))
+	
+	  #+nil ,@(loop for e in `(siod sioc taken)
 		  collect
 		  `(assign ,e ,(format nil "~a_temp" e)))
 	  (always-at (or "posedge I_pxl_clk"
@@ -404,32 +408,34 @@
 					 ,res
 					 )
 					"1'b1")))))))
-	  (always-at (or "posedge I_pxl_clock"
+	  (always-at (or "posedge I_pxl_clk"
 			 "negedge I_rst_n")
-		     (if I_rst_n
-			 (setf ,@(loop for e in `(Pout_de Pout_hs Pout_vs Rden)
-				       appending
-				       `(,(format nil "~a_dn" e)
-					 ,(format nil "~a_w" e))))
+		     (if !I_rst_n
 			 (setf ,@(loop for (e f) in `((Pout_de 0) ( Pout_hs 1) (Pout_vs 1) (Rden 0))
 				       appending
 				       `(,(format nil "~a_dn" e)
 					 ,(format nil "1'b~a" f))))
+			 (setf ,@(loop for e in `(Pout_de Pout_hs Pout_vs Rden)
+				       appending
+				       `(,(format nil "~a_dn" e)
+					 ,(format nil "~a_w" e))))
+			 
 			 ))
-	  (always-at (or "posedge I_pxl_clock"
+	  (always-at (or "posedge I_pxl_clk"
 			 "negedge I_rst_n")
-		     (if I_rst_n
-			 (setf O_de Pout_de_dn
-			       O_hs (? I_hs_pol (~ Pout_hs_dn) Pout_hs_dn)
-			       O_hs (? I_vs_pol (~ Pout_vs_dn) Pout_vs_dn)
-			       O_rden Rden_dn)
+		     (if !I_rst_n
 			 (setf ,@(loop for (e f) in `((O_de 0)
 						      (O_hs 1)
 						      (O_vs 1)
 						      (O_rden 0))
 				       appending
-				       `(,(format nil "~a_dn" e)
+				       `(,(format nil "~a" e)
 					 ,(format nil "1'b~a" f))))
+			 (setf O_de Pout_de_dn
+			       O_hs (? I_hs_pol (~ Pout_hs_dn) Pout_hs_dn)
+			       O_hs (? I_vs_pol (~ Pout_vs_dn) Pout_vs_dn)
+			       O_rden Rden_dn)
+			 
 			 ))
 	    ))
 
@@ -437,7 +443,7 @@
   ;; http://www.uctronics.com/download/OV2640_DS.pdf v.2.2
   (write-source
    (format nil "~a/source/ov2640_registers.v" *path*)
-   `(module ov2640_interface
+   `(module ov2640_registers
 	    ("input clk"		
 	     "input resend"
 	     "input advance"
@@ -569,6 +575,59 @@
 			   )
 	    ))
   (write-source
+   (format nil "~a/source/testpattern.v" *path*)
+   `(module testpattern
+	    (,@(loop for e in `(pxl_clk
+				rst_n
+				(mode 2)
+				(single_r 7)
+				(single_g 7)
+				(single_b 7)
+				(h_total 11)
+				(h_sync 11)
+				(h_bporch 11)
+				(h_res 11)
+				(v_total 11)
+				(v_sync 11)
+				(v_bporch 11)
+				(v_res 11)
+				hs_pol
+				vs_pol
+				)
+		     collect
+		     (format nil "input ~a"
+			     (if (listp e)
+				 (format nil "[~a:0] I_~a" (second e) (first e))
+				 e)))
+	     ,@(loop for e in `(O_de
+				"reg O_hs"
+				"reg O_vs"
+				(O_data_r 7)
+				(O_data_g 7)
+				(O_data_b 7))
+		     collect
+		     (format nil "output ~a"
+			     (if (listp e)
+				 (format nil "[~a:0] ~a" (second e) (first e))
+				 e))))
+	    "localparam N=5;"
+	    ;; bgr
+	    ,@(loop for (name b g r) in `((white 1 1 1)
+					  (yellow 0 1 1)
+					  (cyan 1 1 0)
+					  (green 0 1 0)
+					  (magenta 1 0 1)
+					  (red 0 0 1)
+					  (blue 1 0 0)
+					  (black 0 0 0))
+		    collect
+		    (format nil "localparam ~a = {{~{8'd~a~^,~}}};"
+			    (string-upcase (format nil "~a" name))
+			    (list (* 255 b)
+				  (* 255 g)
+				  (* 255 r))))
+	    ))
+  (write-source
    (format nil "~a/source/video_top.v" *path*)
    `(module video_top
 	    ("input I_clk"		
@@ -647,7 +706,7 @@
 			       
 			       )
 		    collect
-		    (destructuring-bind (name &optional size default) e
+		    (destructuring-bind (name &key size default) e
 		      (format nil "wire ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
 	    ,@(loop for e in `((run_cnt :size 31
 					)
@@ -671,7 +730,8 @@
 			     (t
 			      (incf run_cnt "1'b1"))
 			     )
-		       (assign= send ~finished))
+		       ;(assign= send ~finished)
+		       )
 	    (assign running (? (< run_cnt
 				  "32'd13_500_000")
 			       "1'b1"
@@ -686,9 +746,9 @@
 			     ((== cnt_vs "10'h3ff")
 			      (setf cnt_vs cnt_vs))
 			     (vs_r ;; tp0_vs_in
-			      (incf cnt_v))
+			      (incf cnt_vs))
 			     (t
-			      (setf cnt_v cnt_v))))
+			      (setf cnt_vs cnt_vs))))
 	   
 	    (make-instance ov2640_controller
 			   (u_ov2640_controller
@@ -729,6 +789,159 @@
 			     ,f))
 	    (make-instance Video_Frame_Buffer_Top
 			   (Video_Frame_Buffer_Top_inst
-			   ))
-	    
+			    :I_rst_n init_calib
+			    :I_dma_clk dma_clk
+			    :I_wr_halt "1'd0"
+			    :I_rd_halt "1'd0"
+			    ;; video data input
+			    ,@(loop for e in `((clk)
+					       (vs_n vs)
+					       (de)
+					       (data))
+				    appending
+				    (destructuring-bind (lhs &optional (rhs lhs)) e
+				      `(,(make-keyword (format nil "I_vin0_~a" lhs))
+					,(format nil "ch0_vfb_~a_in" rhs))))
+			    :O_vin0_fifo_full ""
+			    ;; video data output
+			    :I_vout0_clk pix_clk
+			    :I_vout0_vs_n ~syn_off0_vs
+			    :I_vout0_de syn_off0_re
+			    :O_vout0_den off0_syn_de
+			    :O_vout0_data off0_syn_data
+			    :O_vout0_fifo_empty ""
+			    ;; ddr write request
+			    ,@(loop for e in `((cmd)
+					       (cmd_en)
+					       (addr)
+					       (wr_data)
+					       (data_mask))
+				    appending
+				    (destructuring-bind (lhs &optional (rhs lhs)) e
+				      `(,(make-keyword (format nil "O_~a" lhs))
+					,(format nil "~a" rhs))))
+			    ,@(loop for e in `((rd_data_valid)
+					       (rd_data)
+					       (init_calib)
+					       )
+				    appending
+				    (destructuring-bind (lhs &optional (rhs lhs)) e
+				      `(,(make-keyword (format nil "I_~a" lhs))
+					,(format nil "~a" rhs))))
+			    ))
+	    (make-instance GW_PLLVR
+			   (GW_PLLVR_inst
+			    :clkout memory_clk
+			    :lock mem_pll_lock
+			    :clkin I_clk))
+	    (make-instance HyperRAM_Memory_Interface_Top
+			   (HyperRAM_Memory_Interface_Top_inst
+			    :clk I_clk
+			    :memory_clk memory_clk
+			    :pll_lock mem_pll_lock
+			    :rst_n I_rst_n
+			    :O_hpram_ck O_hpram_ck
+			    :O_hpram_ck_n O_hpram_ck_n
+			    :IO_hpram_rwds IO_hpram_rwds
+			    :IO_hpram_dq IO_hpram_dq
+			    :O_hpram_reset_n O_hpram_reset_n
+			    :O_hpram_cs_n O_hpram_cs_n
+			    :wr_data wr_data
+			    :rd_data rd_data
+			    :rd_data_valid rd_data_valid
+			    :addr addr
+			    :cmd cmd
+			    :cmd_en cmd_en
+			    :clk_out dma_clk
+			    :data_mask data_mask
+			    :init_calib init_calib))
+	    (make-instance syn_gen
+			   (syn_gen_inst
+			    :I_pxl_clk pix_clk
+			    :I_rst_n hdmi_rst_n
+			    ,@(loop for (lhs rhs) in `((h_total 1650)
+						       (h_sync 40)
+						       (h_bporch 220)
+						       (h_res 1280)
+						       (v_total 750)
+						       (v_sync 5)
+						       (v_bporch 20)
+						       (v_res 720)
+						       (rd_hres 640)
+						       (rd_vres 480)
+						       )
+				    appending
+				    `(,(make-keyword (format nil "I_~a" lhs))
+				      ,(format nil "16'd~a" rhs)))
+			    :I_hs_pol "1'b1"
+			    :I_vs_pol "1'b1"
+			    :O_rden syn_off0_re
+			    :O_de out_de
+			    :O_hs syn_off0_hs
+			    :O_vs syn_off0_vs
+			    ))
+	    "localparam N=5; // delay N clocks"
+	    ,@(loop for e in `((Pout_hs_dn "N-1")
+			       (Pout_vs_dn "N-1")
+			       (Pout_de_dn "N-1")
+			       )
+		  collect
+		  (destructuring-bind (name &optional size default) e
+		    (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+	    (always-at (or "posedge pix_clk"
+			   "negedge hdmi_rst_n")
+		       (if !hdmi_rst_n
+			   (setf Pout_hs_dn "{N{1'b1}}"
+				 Pout_vs_dn "{N{1'b1}}"
+				 Pout_de_dn "{N{1'b0}}")
+			   (setf Pout_hs_dn (concat (aref Pout_hs_dn (slice (- N 2) 0))
+						    syn_off0_hs)
+				 Pout_vs_dn (concat (aref Pout_vs_dn (slice (- N 2) 0))
+						    syn_off0_vs)
+				 Pout_de_dn (concat (aref Pout_de_dn (slice (- N 2) 0))
+						    out_de))))
+	    ;; TMDS TX
+	    (assign rgb_data (? off0_syn_de
+				(concat (aref off0_syn_data (slice 15 11))
+					(aref off0_syn_data (slice 10 5))
+					"2'd0"
+					(aref off0_syn_data (slice 4 0)
+					      )
+					"3'd0")
+				"24'h1fff00" ;; r g b
+				)
+		    rgb_vs (aref Pout_vs_dn 4)
+		    rgb_hs (aref Pout_hs_dn 4)
+		    rgb_de (aref Pout_de_dn 4))
+	     (make-instance TMDS_PLLVR
+			   (TMDS_PLLVR_inst
+			    :clkin I_clk
+			    :clkout serial_clk
+			    :clkoutd clk_12M
+			    :lock pll_lock
+			    ))
+	     (assign hdmi_rst_n (and I_rst_n pll_lock))
+	     (make-instance CLKDIV
+			   (u_clkdiv
+			    :RESETN hdmi_rst_n
+			    :HCLKIN serial_clk ;; 5x
+			    :CLKOUT pix_clk ;; 1x
+			    :CALIB "1'b1"
+			    ))
+	     "defparam u_clkdiv.DIV_MODE=\"5\";"
+	     (make-instance DVI_TX_Top
+			    (DVI_TX_Top_inst
+			     :I_rst_n hdmi_rst_n
+			     :I_serial_clk serial_clk
+			     :I_rgb_clk pix_clk
+			     :I_rgb_vs rgb_vs
+			     :I_rgb_hs rgb_hs
+			     :I_rgb_de rgb_de
+			     :I_rgb_r (aref rgb_data (slice 23 16))
+			     :I_rgb_g (aref rgb_data (slice 15 8))
+			     :I_rgb_b (aref rgb_data (slice 7 0))
+			     :O_tmds_clk_p O_tmds_clk_p
+			     :O_tmds_clk_n O_tmds_clk_n
+			     :O_tmds_data_p O_tmds_data_p
+			     :O_tmds_data_n O_tmds_data_n))
 	    )))

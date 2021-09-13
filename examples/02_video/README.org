@@ -54,3 +54,9 @@ embflash erase, program, verify
 - generate ipc files
 - create tcl files to compile the project
   - can i also call the ip core generator via tcl?
+
+- error:
+  #+begin_example
+ERROR  (PR2017) : 'O_led[0]' cannot be placed according to constraint, for the location is a dedicated pin (MODE)
+  #+end_example
+  - Project->Configuration->Dual-Purpose Pin MODE as regular IO
