@@ -579,27 +579,27 @@
    `(module testpattern
 		       
 		       ( ,@(loop for e in `(pxl_clk
-						       rst_n
-						       (mode 2)
-						       (single_r 7)
-						       (single_g 7)
-						       (single_b 7)
-						       (h_total 11)
-						       (h_sync 11)
-						       (h_bporch 11)
-						       (h_res 11)
-						       (v_total 11)
-						       (v_sync 11)
-						       (v_bporch 11)
-						       (v_res 11)
-						       hs_pol
-						       vs_pol
-						       )
+					    rst_n
+					    (mode 2)
+					    (single_r 7)
+					    (single_g 7)
+					    (single_b 7)
+					    (h_total 11)
+					    (h_sync 11)
+					    (h_bporch 11)
+					    (h_res 11)
+					    (v_total 11)
+					    (v_sync 11)
+					    (v_bporch 11)
+					    (v_res 11)
+					    hs_pol
+					    vs_pol
+					    )
 					    collect
 					    (format nil "input ~a"
 						    (if (listp e)
 							(format nil "[~a:0] I_~a" (second e) (first e))
-							e)))
+							(format nil "I_~a" e))))
 			          ,@(loop for e in `(O_de
 							   "reg O_hs"
 							   "reg O_vs"
@@ -675,7 +675,7 @@
 				   ;; generate hs, vs and de signals
 				   (if !I_rst_n
 				       (setf V_cnt "12'd0")
-				       (cond ((&& (<= (- I_v_total "1'b1")
+				       (cond ((logand (<= (- I_v_total "1'b1")
 						      V_cnt)
 						  (<= (- I_h_total "1'b1")
 						      H_cnt))
@@ -733,11 +733,11 @@
 				      (setf Pout_de_dn "{N{1'b0}}"
 					    Pout_hs_dn "{N{1'b1}}"
 					    Pout_vs_dn "{N{1'b1}}"))
-				     (t (setf Pout_de_dn (concat (aref Pout_de_dn (slice (-N 2) 0))
+				     (t (setf Pout_de_dn (concat (aref Pout_de_dn (slice (- N 2) 0))
 								 Pout_de_w)
-					      Pout_hs_dn (concat (aref Pout_hs_dn (slice (-N 2) 0))
+					      Pout_hs_dn (concat (aref Pout_hs_dn (slice (- N 2) 0))
 								 Pout_hs_w)
-					      Pout_vs_dn (concat (aref Pout_vs_dn (slice (-N 2) 0))
+					      Pout_vs_dn (concat (aref Pout_vs_dn (slice (- N 2) 0))
 								 Pout_vs_w)
 					      )))
 			       ))
@@ -763,11 +763,11 @@
 		        (do0
 			      ;; test pattern
 			      ;; rising edge of de
-			      (assign De_pos (& (aref !Pout_de_dn 1)
+			      (assign De_pos (and (aref !Pout_de_dn 1)
 						(aref Pout_de_dn 0)))
-			      (assign Vs_pos (& (aref !Pout_vs_dn 1)
+			      (assign Vs_pos (and (aref !Pout_vs_dn 1)
 						(aref Pout_vs_dn 0)))
-			      (assign De_neg (& (aref Pout_de_dn 1)
+			      (assign De_neg (and (aref Pout_de_dn 1)
 						(aref !Pout_de_dn 0)))
 
 			      (always-at
@@ -803,7 +803,7 @@
 				(setf Color_trig_num  "12'd0"))
 			       ((== (aref Pout_de_dn 1) "1'b1")
 				(setf Color_trig_num  (aref I_h_res (slice 11 3))))
-			       ((&& (== Color_trig "1'b1")
+			       ((logand (== Color_trig "1'b1")
 				    (== (aref Pout_de_dn 1) "1'b1"))
 				(incf Color_trig_num (aref I_h_res (slice 11 3))))
 			       (t
@@ -825,7 +825,7 @@
 				(setf Color_cnt "3'd0"))
 			       ((== (aref Pout_de_dn 1) "1'b0")
 				(setf Color_cnt "3'b0"))
-			       ((&& (== Color_trig "1'b1")
+			       ((logand (== Color_trig "1'b1")
 				    (== (aref Pout_de_dn 1)
 					"1'b1"))
 				(incf Color_cnt "1'b1"))
@@ -993,12 +993,12 @@
 	     )
 	    
 	    ,@(loop for e in `((running)
-					;(tp0_vs_in)
-					;(tp0_hs_in)
-					;(tp0_de_in)
-			       #+nil ,@(loop for e in `(r g b)
-					     collect
-					     `(,(format nil "tp0_data_~a" e) :size 7 ))
+			       (tp0_vs_in)
+			       (tp0_hs_in)
+			       (tp0_de_in)
+			       ,@(loop for e in `(r g b)
+				       collect
+				       `(,(format nil "tp0_data_~a" e) :size 7 ))
 			       (cam_data :size 15)
 			       ,@(loop for e in `(re vs hs)
 				       collect
@@ -1062,13 +1062,49 @@
 		    (aref O_led 0) running
 		    (aref O_led 1) ~init_calib
 		    XCLK clk_12M)
+
+	    (make-instance
+	     testpattern
+	     (testpattern_inst
+	      :I_pxl_clk I_clk
+	      :I_rst_n I_rst_n
+	      :I_mode (concat "1'b0"
+			      (aref cnt_vs (slice 7 6)))
+	      :I_single_r "8'd0"
+	      :I_single_g "8'd255"
+	      :I_single_b "8'd0"
+	      
+	      :I_h_total "16'd1650"
+	      :I_h_sync "16'd40"
+	      :I_h_bporch "16'd220"
+	      :I_h_res "16'd640"
+
+	      :I_v_total "16'd750"
+	      :I_v_sync "16'd5"
+	      :I_v_bporch "16'd20"
+	      :I_v_res "16'd480"
+
+	      :I_hs_pol "1'b1"
+	      :I_vs_pol "1'b1"
+
+	      :O_de tp0_de_in
+	      :O_hs tp0_hs_in
+	      :O_vs tp0_vs_in
+
+	      :O_data_r tp0_data_r
+	      :O_data_g tp0_data_g
+	      :O_data_b tp0_data_b))
+
+	    (always-at "posedge I_clk"
+		       (setf vs_r tp0_vs_in))
+	    
 	    (always-at (or "posedge I_clk"
 			   "negedge I_rst_n")
 		       (cond (!I_rst_n
 			      (setf cnt_vs 0))
 			     ((== cnt_vs "10'h3ff")
 			      (setf cnt_vs cnt_vs))
-			     (vs_r ;; tp0_vs_in
+			     ((logand vs_r !tp0_vs_in)
 			      (incf cnt_vs))
 			     (t
 			      (setf cnt_vs cnt_vs))))
@@ -1100,9 +1136,20 @@
 		    (concat (aref PIXDATA (slice 9 5))
 			    (aref PIXDATA (slice 9 4))
 			    (aref PIXDATA (slice 9 5))))
-	    #+nil 
-	    ,@(loop for (e f g) in `((clk I_clk PIXCLK)
+	    
+	    #+nil,@(loop for (e f g) in `((clk I_clk PIXCLK)
 				     (vs ~tp0_vs_in VSYNC) de data))
+	    ,@(loop for (e f g) in `((clk I_clk PIXCLK)
+				     (vs ~tp0_vs_in VSYNC)
+				     (de tp0_de_in HREF)
+				     (data (concat (aref tp0_data_r (slice 7 3))
+						   (aref tp0_data_g (slice 7 2))
+						   (aref tp0_data_b (slice 7 3)))
+					   cam_data))
+		    collect
+		    `(assign ,(format nil "ch0_vfb_~a_in" e)
+			     (? (<= cnt_vs "10'h1ff") ,f ,g)))
+	    #+nil 
 	    ,@(loop for (e f) in `((clk PIXCLK)
 				   (vs VSYNC)
 				   (de HREF)
