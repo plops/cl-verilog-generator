@@ -17,10 +17,15 @@
 	       (serial_clk 2.694 1.347 get_nets)
 	       (pix_clk 13.468 6.734 get_nets))
 	     collect
-	     `(create_clock :name ,name
-			    :period ,period
-			    :waveform (quote 0 ,n)
-			    :add (bracket (,fn (quote ,name)))))
+	     (format nil "create_clock -name ~a -period ~a -waveform {0 ~a} [~a {~a}] -add"
+		     name period n
+		     fn name )
+	     #+nil  (create_clock :name ,name
+				    :period ,period
+				    :waveform (quote 0 ,n)
+			    
+				    (bracket (,fn (quote ,name)))
+				    :add ""))
      ))
   (write-source
    ;; pin cconstraints
@@ -1319,5 +1324,4 @@
 			    :O_tmds_clk_p O_tmds_clk_p
 			    :O_tmds_clk_n O_tmds_clk_n
 			    :O_tmds_data_p O_tmds_data_p
-			    :O_tmds_data_n O_tmds_data_n))
-	    )))
+			    :O_tmds_data_n O_tmds_data_n)))))
