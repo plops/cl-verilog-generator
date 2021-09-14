@@ -854,7 +854,7 @@
 					    (setf Color_bar ,e)))
 				  (t (setf Color_bar BLACK))))
 			       (t
-				 (setf Color_bar BLACK))))
+				 (setf Color_bar GREEN))))
 		
 			)
 			,(flet ((defpix (&key reset clauses)
