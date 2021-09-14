@@ -178,6 +178,8 @@
 				 ,(row `(out (string "~{~a~^, ~}") (emits args))))
 				(paren
 				 ,(row `(out (string "(~{~a~^, ~})") (emits args))))
+				(parenln
+				 ,(row `(out (string "(~{~a~^,~%~})") (emits args))))
 				(concat
 				 ,(row `(out (string "{~{~a~^, ~}}") (emits args))))
 				(space
@@ -376,7 +378,7 @@
 								  collect
 								  e)))
 						(out (string "~a~a") name
-							(emit "`(paren ,@(append
+							(emit "`(parenln ,@(append
 									 positional
 									 (loop for e in props collect
 									       `(,(format nil \".~a\" e) ,(getf plist e)))))")))

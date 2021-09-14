@@ -183,7 +183,7 @@
 	  (Addr_Width 22)
 	  (Data_Width 32)
 	  (Disable_IO_Insertion true)
-	  (Image_Size 00100000)
+	  (Image_Size "00100000")
 	  (LANG 0)
 	  (Memory_Type HyperRAM)
 	  (Read_Burst_Length 128)
@@ -256,7 +256,8 @@
 				  taken_temp "1'b1")
 			    (incf divider))
 			)
-		    (do0
+		    )
+		   (do0
 		     (case (concat (aref busy_sr (slice 31 29))
 				   (aref busy_sr (slice 2 0)))
 		       ,@(loop for e in `(("6'b111_111" 1 1 1 1)
@@ -285,7 +286,7 @@
 					       "1'b1")
 			       divider "{8{1'b0}}"
 			       )
-			 (incf divider)))))))))
+			 (incf divider))))))))
   (write-source
    (format nil "~a/source/syn_gen.v" *path*)
    `(module syn_gen
@@ -622,7 +623,7 @@
 							     (blue 1 0 0)
 							     (black 0 0 0))
 				       collect
-				       (format nil "localparam ~a = {{~{8'd~a~^,~}}};"
+				       (format nil "localparam ~a = {~{8'd~a~^,~}};"
 					       (string-upcase (format nil "~a" name))
 					       (list (* 255 b)
 						     (* 255 g)
@@ -932,7 +933,8 @@
 							(? (== (aref I_mode (slice 2 0))
 							       "3'b011")
 							   Single_color
-							   GREEN)))))
+							   Color_bar ;RED
+							   )))))
 			      (always-at
 			       (or "posedge I_pxl_clk"
 				   "negedge I_rst_n")
@@ -1016,7 +1018,7 @@
 			       (rd_data_valid)
 			       (rd_data :size 31)
 			       (init_calib)
-			       ,@(loop for e in `(re vs hs)
+			       ,@(loop for e in `(de vs hs)
 				       collect
 				       `(,(format nil "rgb_~a" e)))
 			       (rgb_data :size 23)
@@ -1278,7 +1280,7 @@
 					(aref off0_syn_data (slice 4 0)
 					      )
 					"3'd0")
-				"24'h1fff00" ;; r g b
+				"24'hff0000" ;; r g b
 				)
 		    rgb_vs (aref Pout_vs_dn 4)
 		    rgb_hs (aref Pout_hs_dn 4)
