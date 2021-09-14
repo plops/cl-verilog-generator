@@ -255,38 +255,38 @@
 						  "2'b11")
 				  taken_temp "1'b1")
 			    (incf divider))
-			)
-		    )
-		   (do0
-		     (case (concat (aref busy_sr (slice 31 29))
-				   (aref busy_sr (slice 2 0)))
-		       ,@(loop for e in `(("6'b111_111" 1 1 1 1)
-					  ("6'b111_110" 1 1 1 1)
-					  ("6'b111_100" 0 0 0 0)
-					  ("6'b110_000" 0 1 1 1)
-					  ("6'b100_000" 1 1 1 1)
-					  ("6'b000_000" 1 1 1 1)
-					  (t 0 1 1 0)
-					  )
-			       
-			       collect
-			       (destructuring-bind (top-key a b c d) e
-				 `(,top-key
-				   (case (aref divider (slice 7 6))
-				     ,@(loop for key in `("2'b00" "2'b01" "2'b10" t)
-					     and f in (list a b c d)
-					     collect
-					     `(,key (setf sioc_temp ,f))))))))
+			
+			
+			(do0
+			 (case (concat (aref busy_sr (slice 31 29))
+				       (aref busy_sr (slice 2 0)))
+			   ,@(loop for e in `(("6'b111_111" 1 1 1 1)
+					      ("6'b111_110" 1 1 1 1)
+					      ("6'b111_100" 0 0 0 0)
+					      ("6'b110_000" 0 1 1 1)
+					      ("6'b100_000" 1 1 1 1)
+					      ("6'b000_000" 1 1 1 1)
+					      (t 0 1 1 0)
+					      )
+				   
+				   collect
+				   (destructuring-bind (top-key a b c d) e
+				     `(,top-key
+				       (case (aref divider (slice 7 6))
+					 ,@(loop for key in `("2'b00" "2'b01" "2'b10" t)
+						 and f in (list a b c d)
+						 collect
+						 `(,key (setf sioc_temp ,f))))))))
 
-		     
-		     (if (== divider "8'b1111_1111")
-			 (setf busy_sr (concat (aref busy_sr (slice 30 0))
-					       "1'b0")
-			       data_sr (concat (aref data_sr (slice 30 0))
-					       "1'b1")
-			       divider "{8{1'b0}}"
-			       )
-			 (incf divider))))))))
+			 
+			 (if (== divider "8'b1111_1111")
+			     (setf busy_sr (concat (aref busy_sr (slice 30 0))
+						   "1'b0")
+				   data_sr (concat (aref data_sr (slice 30 0))
+						   "1'b1")
+				   divider "{8{1'b0}}"
+				   )
+			     (incf divider))))))))))
   (write-source
    (format nil "~a/source/syn_gen.v" *path*)
    `(module syn_gen
@@ -1002,6 +1002,10 @@
 				       collect
 				       `(,(format nil "tp0_data_~a" e) :size 7 ))
 			       (cam_data :size 15)
+			       ,@(loop for e in `(clk vs de)
+				       collect
+				       `(,(format nil "ch0_vfb_~a_in" e)))
+			       (ch0_vfb_data_in :size 15)
 			       ,@(loop for e in `(re vs hs)
 				       collect
 				       `(,(format nil "syn_off0_~a" e)))
@@ -1076,15 +1080,15 @@
 	      :I_single_g "8'd255"
 	      :I_single_b "8'd0"
 	      
-	      :I_h_total "16'd1650"
-	      :I_h_sync "16'd40"
-	      :I_h_bporch "16'd220"
-	      :I_h_res "16'd640"
+	      :I_h_total "12'd1650"
+	      :I_h_sync "12'd40"
+	      :I_h_bporch "12'd220"
+	      :I_h_res "12'd640"
 
-	      :I_v_total "16'd750"
-	      :I_v_sync "16'd5"
-	      :I_v_bporch "16'd20"
-	      :I_v_res "16'd480"
+	      :I_v_total "12'd750"
+	      :I_v_sync "12'd5"
+	      :I_v_bporch "12'd20"
+	      :I_v_res "12'd480"
 
 	      :I_hs_pol "1'b1"
 	      :I_vs_pol "1'b1"
