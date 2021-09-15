@@ -17,6 +17,7 @@
 	       (serial_clk 2.694 1.347 get_nets)
 	       (pix_clk 13.468 6.734 get_nets))
 	     collect
+	     ;; period, frequency MHz, rise time ns, fall time ns
 	     (format nil "create_clock -name ~a -period ~a -waveform {0 ~a} [~a {~a}] -add"
 		     name period n
 		     fn name )
@@ -975,37 +976,45 @@
 			     (if (listp e)
 				 (format nil "[~a:0] ~a" (second e) (first e))
 				 e)))
-	     ,@(loop for e in `(XCLK
+	     ,@(loop for e in `((XCLK)
 				(O_hpram_ck 0)
 				(O_hpram_ck_n 0)
 				(O_hpram_cs_n 0)
 				(O_hpram_reset_n 0)
-				O_tmds_clk_p
-				O_tmds_clk_n
+				(IO_hpram_dq 7)
+				(IO_hpram_rwds 0)
+				(O_tmds_clk_p)
+				(O_tmds_clk_n)
 				(O_tmds_data_p 2)
 				(O_tmds_data_n 2)
 				)
 		     collect
-		     (format nil "output ~a"
-			     (if (listp e)
-				 (format nil "[~a:0] ~a" (second e) (first e))
-				 e)))
-	     ,@(loop for e in `((IO_hpram_dq 7)
-				(IO_hpram_rwds 0))
-		     collect
-		     (format nil "inout ~a"
-			     (if (listp e)
-				 (format nil "[~a:0] ~a" (second e) (first e))
-				 e)))
+		     (destructuring-bind (name &optional n) e
+		       (let ((pre (subseq (format nil "~a" name) 0 2)))
+			 (format nil "~a ~a"
+				 (case pre
+				   ("O_" "output")
+				   ("I_" "input")
+				   ("IO" "inout"))
+				(format nil "[~a:0] ~a" n name)
+				))))
+	     
 	     )
 	    
-	    ,@(loop for e in `((running)
+	    ,@(loop for e in `((run_cnt :size 31 :type "reg")
+			       (running)
 			       (tp0_vs_in)
 			       (tp0_hs_in)
 			       (tp0_de_in)
 			       ,@(loop for e in `(r g b)
 				       collect
 				       `(,(format nil "tp0_data_~a" e) :size 7 ))
+
+			       (vs_r :type "reg")
+			       (cnt_vs :size 9 :type "reg")
+			       (pixdata_dl :size 9 :type "reg")
+			       (hcnt :type "reg")
+			       
 			       (cam_data :size 15)
 			       ,@(loop for e in `(clk vs de)
 				       collect
@@ -1040,19 +1049,9 @@
 			       
 			       )
 		    collect
-		    (destructuring-bind (name &key size default) e
-		      (format nil "wire ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
-	    ,@(loop for e in `((run_cnt :size 31
-					)
-			       (vs_r)
-			       (cnt_vs :size 9)
-			       (pixdata_dl :size 9)
-			       (hcnt)
-			       
-			       )
-		    collect
-		    (destructuring-bind (name &key size default) e
-		      (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
+		    (destructuring-bind (name &key size default (type "wire")) e
+		      (format nil "~a ~@[[~a:0]~] ~a~@[ =~a~];" type size name default)))
+	    
 
 	    (always-at (or "posedge I_clk"
 			   "negedge I_rst_n")
