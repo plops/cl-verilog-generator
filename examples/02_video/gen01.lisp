@@ -986,7 +986,8 @@
 			     (if (listp e)
 				 (format nil "[~a:0] ~a" (second e) (first e))
 				 e)))
-	     ,@(loop for e in `((XCLK)
+	     "output XCLK"
+	     ,@(loop for e in `(
 				(O_hpram_ck 0)
 				(O_hpram_ck_n 0)
 				(O_hpram_cs_n 0)
@@ -1002,11 +1003,11 @@
 		     (destructuring-bind (name &optional n) e
 		       (let ((pre (subseq (format nil "~a" name) 0 2)))
 			 (format nil "~a ~a"
-				 (case pre
+				 (alexandria:switch (pre :test #'equal)
 				   ("O_" "output")
 				   ("I_" "input")
 				   ("IO" "inout"))
-				(format nil "[~a:0] ~a" n name)
+				 (format nil "~@[[~a:0]~] ~a" n name)
 				))))
 	     
 	     )
