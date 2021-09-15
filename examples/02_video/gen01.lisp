@@ -542,7 +542,7 @@
 			   and i from 0
 			   collect
 			   `(,(format nil "~3,'0d" i)
-			     (setf sreg ,(format nil "16'h~a_~a" e f))))
+			     (setf sreg ,(format nil "16'h~2,'0d_~2,'0d" e f))))
 		   (t (setf sreg "16'hFF_FF"))
 		   )))))
   (write-source
