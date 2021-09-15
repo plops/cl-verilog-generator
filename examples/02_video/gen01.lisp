@@ -987,7 +987,7 @@
 				 (format nil "[~a:0] ~a" (second e) (first e))
 				 e)))
 	     "output XCLK"
-	     ,@(loop for e in `(
+	     ,@(loop for e in `( 
 				(O_hpram_ck 0)
 				(O_hpram_ck_n 0)
 				(O_hpram_cs_n 0)
