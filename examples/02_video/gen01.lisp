@@ -231,7 +231,7 @@
 		       (destructuring-bind (name &optional size default) e
 			 (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
 	       "// ID of an OV7670 for SCCB protocol"
-	       "localparam id = 8'h42;"
+	       "localparam id = 8'h60;"
 	       ,@(loop for e in `(siod sioc taken)
 		       collect
 		       `(assign ,e ,(format nil "~a_temp" e)))
@@ -573,6 +573,7 @@
 		    pwdn 0)
 	    (always-at finished
 		       (assign= send ~finished))
+	    "// clk = 50MHz"
 	    (make-instance ov2640_registers
 			   (lut :clk clk
 				:advance taken
