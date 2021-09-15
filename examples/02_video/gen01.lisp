@@ -1036,7 +1036,7 @@
 			       (rd_data_valid)
 			       (rd_data :size 31)
 			       (init_calib)
-			       ,@(loop for e in `(de vs hs)
+			       ,@(loop for e in `(vs hs de)
 				       collect
 				       `(,(format nil "rgb_~a" e)))
 			       (rgb_data :size 23)
@@ -1209,6 +1209,9 @@
 				      `(,(make-keyword (format nil "I_~a" lhs))
 					,(format nil "~a" rhs))))
 			    ))
+	    "// ===="
+	    "// HyperRAM ip"
+
 	    (make-instance GW_PLLVR
 			   (GW_PLLVR_inst
 			    :clkout memory_clk
@@ -1280,9 +1283,12 @@
 						    syn_off0_vs)
 				 Pout_de_dn (concat (aref Pout_de_dn (slice (- N 2) 0))
 						    out_de))))
-	    ;; TMDS TX
+	  
+	    "// ===="
+	    "// TMDS TX"
 	    (assign rgb_data (? off0_syn_de
 				(concat (aref off0_syn_data (slice 15 11))
+					"3'd0"
 					(aref off0_syn_data (slice 10 5))
 					"2'd0"
 					(aref off0_syn_data (slice 4 0)
