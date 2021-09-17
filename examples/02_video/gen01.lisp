@@ -41,20 +41,29 @@
 			(SCL        (44)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
 			(SDA        (46)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
 			(PIXCLK        (41)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
-			(HREF        (42)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
-			(VSYNC        (43)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
-			(I_rst_n        (14)             ("PULL_MODE=UP")) ;; why not lvcmos33?
-			(I_clk        (45)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
 			,@(loop for (f g) in `((9 40)
 					    (8 39)
 					    (7 23)
 					    (6 16)
 					    (5 18)
 					    (4 20)
+					    ;(3 19)
+					    ;(2 17)
+					    ;(1 21)
+					    ;(0 22)
+					       )
+				collect
+				`(,(format nil "PIXDATA[~a]" f)        (,g)             ("PULL_MODE=UP")))
+			(HREF        (42)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
+			(VSYNC        (43)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
+			(I_rst_n        (14)             ("PULL_MODE=UP")) ;; why not lvcmos33?
+			(I_clk        (45)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))
+			,@(loop for (f g) in `(
 					    (3 19)
 					    (2 17)
 					    (1 21)
-					    (0 22))
+					    (0 22)
+					       )
 				collect
 				`(,(format nil "PIXDATA[~a]" f)        (,g)             ("PULL_MODE=UP")))
 			)
@@ -332,9 +341,7 @@
 			       name)))
 	     )
 	  ,@(loop for e in `((V_cnt 15)
-			     (H_cnt 15)
-			     (Rden_dn)
-			     )
+			     (H_cnt 15))
 		  collect
 		  (destructuring-bind (name &optional size default) e
 		    (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
@@ -347,10 +354,17 @@
 	  ,@(loop for e in `(Rden_w)
 		  collect
 		  (format nil "wire ~a;" e))
+	  ,@(loop for e in `((Rden_dn)
+			     )
+		  collect
+		  (destructuring-bind (name &optional size default) e
+		    (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))
 	
 	  #+nil ,@(loop for e in `(siod sioc taken)
 		  collect
-		  `(assign ,e ,(format nil "~a_temp" e)))
+			`(assign ,e ,(format nil "~a_temp" e)))
+	  "//===="
+	  "//Generate HS, VS DE sig"
 	  (always-at (or "posedge I_pxl_clk"
 			   "negedge I_rst_n")
 		       ;; tristate when idle or siod driven by master
@@ -365,6 +379,7 @@
 				 (t
 				  (setf V_cnt V_cnt))
 				 )))
+	  "//---"
 	  (always-at (or "posedge I_pxl_clk"
 			 "negedge I_rst_n") 
 		     (cond (!I_rst_n
@@ -375,6 +390,7 @@
 			   (t
 			    (incf H_cnt "1'b1")))
 		     )
+	  "//------"
 	  (assign Pout_de_w (and ,@(loop for dir in `(H V)
 			   collect
 			   (let* ((sdir (string-downcase dir))
@@ -408,6 +424,7 @@
 					V_cnt)
 				    (<= V_cnt (- I_v_sync "1'b1"))))
 		  )
+	  "//===="
 	  (assign Rden_w
 		  (and ,@(loop for dir in `(H V)
 			   collect
@@ -424,6 +441,7 @@
 					 ,res
 					 )
 					"1'b1")))))))
+	  "//-----"
 	  (always-at (or "posedge I_pxl_clk"
 			 "negedge I_rst_n")
 		     (if !I_rst_n
