@@ -1021,8 +1021,8 @@
 				   ("I_" "input")
 				   ("IO" "inout"))
 				 (format nil "~@[[~a:0]~] ~a" n name))))))
-	    ,@(loop for e in `((run_cnt :size 31 :type "reg")
-			       (running)
+	    ,@(loop for e in `(#+max (run_cnt :size 31 :type "reg")
+			       #+max (running)
 			       #+max ,@(loop for e in `(vs hs de)
 					     collect
 					     `(,(format nil "tp0_~a_in" e)))
@@ -1067,7 +1067,7 @@
 		    collect
 		    (destructuring-bind (name &key size default (type "wire")) e
 		      (format nil "~a ~@[[~a:0]~] ~a~@[ =~a~];" type size name default)))
-	    (always-at (or "posedge I_clk"
+	    #+max (always-at (or "posedge I_clk"
 			   "negedge I_rst_n")
 		       (cond (!I_rst_n
 			      (setf run_cnt "32'd0"))
@@ -1076,13 +1076,17 @@
 			      (setf run_cnt "32'd0"))
 			     (t
 			      (incf run_cnt "1'b1"))))
-	    (assign running (? (< run_cnt
+	    #+max (assign running (? (< run_cnt
 				  "32'd13_500_000")
 			       "1'b1"
 			       "1'b0")
-		    (aref O_led 0) running
-		    #+max (aref O_led 1) #+max ~init_calib
-		    XCLK clk_12M)
+		    )
+	    (assign XCLK clk_12M)
+	    #+max (assign (aref O_led 0) running
+			  (aref O_led 1) ~init_calib)
+	    #-max (assign O_led  ; running
+			  ~init_calib
+			  )
 	    #+max
 	    (make-instance
 	     testpattern
