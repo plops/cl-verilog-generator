@@ -468,10 +468,7 @@
 			 (setf O_de Pout_de_dn
 			       O_hs (? I_hs_pol (~ Pout_hs_dn) Pout_hs_dn)
 			       O_hs (? I_vs_pol (~ Pout_vs_dn) Pout_vs_dn)
-			       O_rden Rden_dn)
-			 
-			 ))
-	    ))
+			       O_rden Rden_dn)))))
 
   ;; https://www.uctronics.com/download/cam_module/OV2640DS.pdf v.1.6
   ;; http://www.uctronics.com/download/OV2640_DS.pdf v.2.2
@@ -991,22 +988,21 @@
    `(module video_top
 	    ("input I_clk"		
 	     "input I_rst_n"
-	     "output [1:0] O_led"
+	     #+max "output [1:0] O_led"
+	     #-max "output O_led"
 	     "inout SDA"
 	     "inout SCL"
 	     ,@(loop for e in `(VSYNC
 				HREF
 				(PIXDATA 9)
-				PIXCLK
-				)
+				PIXCLK)
 		     collect
 		     (format nil "input ~a"
 			     (if (listp e)
 				 (format nil "[~a:0] ~a" (second e) (first e))
 				 e)))
 	     "output XCLK"
-	     ,@(loop for e in `( 
-				(O_hpram_ck 0)
+	     ,@(loop for e in `((O_hpram_ck 0)
 				(O_hpram_ck_n 0)
 				(O_hpram_cs_n 0)
 				(O_hpram_reset_n 0)
@@ -1015,8 +1011,7 @@
 				(O_tmds_clk_p)
 				(O_tmds_clk_n)
 				(O_tmds_data_p 2)
-				(O_tmds_data_n 2)
-				)
+				(O_tmds_data_n 2))
 		     collect
 		     (destructuring-bind (name &optional n) e
 		       (let ((pre (subseq (format nil "~a" name) 0 2)))
@@ -1025,25 +1020,19 @@
 				   ("O_" "output")
 				   ("I_" "input")
 				   ("IO" "inout"))
-				 (format nil "~@[[~a:0]~] ~a" n name)
-				))))
-	     
-	     )
-	    
+				 (format nil "~@[[~a:0]~] ~a" n name))))))
 	    ,@(loop for e in `((run_cnt :size 31 :type "reg")
 			       (running)
-			       (tp0_vs_in)
-			       (tp0_hs_in)
-			       (tp0_de_in)
-			       ,@(loop for e in `(r g b)
+			       #+max ,@(loop for e in `(vs hs de)
+					     collect
+					     `(,(format nil "tp0_~a_in" e)))
+			       #+max ,@(loop for e in `(r g b)
 				       collect
 				       `(,(format nil "tp0_data_~a" e) :size 7 ))
-
 			       (vs_r :type "reg")
 			       (cnt_vs :size 9 :type "reg")
 			       (pixdata_dl :size 9 :type "reg")
 			       (hcnt :type "reg")
-			       
 			       (cam_data :size 15)
 			       ,@(loop for e in `(clk vs de)
 				       collect
@@ -1074,14 +1063,10 @@
 			       (pll_lock)
 			       (hdmi_rst_n)
 			       (pix_clk)
-			       (clk_12M)
-			       
-			       )
+			       (clk_12M))
 		    collect
 		    (destructuring-bind (name &key size default (type "wire")) e
 		      (format nil "~a ~@[[~a:0]~] ~a~@[ =~a~];" type size name default)))
-	    
-
 	    (always-at (or "posedge I_clk"
 			   "negedge I_rst_n")
 		       (cond (!I_rst_n
@@ -1090,18 +1075,15 @@
 				  run_cnt)
 			      (setf run_cnt "32'd0"))
 			     (t
-			      (incf run_cnt "1'b1"))
-			     )
-					;(assign= send ~finished)
-		       )
+			      (incf run_cnt "1'b1"))))
 	    (assign running (? (< run_cnt
 				  "32'd13_500_000")
 			       "1'b1"
 			       "1'b0")
 		    (aref O_led 0) running
-		    (aref O_led 1) ~init_calib
+		    #+max (aref O_led 1) #+max ~init_calib
 		    XCLK clk_12M)
-
+	    #+max
 	    (make-instance
 	     testpattern
 	     (testpattern_inst
@@ -1134,10 +1116,10 @@
 	      :O_data_g tp0_data_g
 	      :O_data_b tp0_data_b))
 
-	    (always-at "posedge I_clk"
+	    #+max (always-at "posedge I_clk"
 		       (setf vs_r tp0_vs_in))
 	    
-	    (always-at (or "posedge I_clk"
+	    #+max (always-at (or "posedge I_clk"
 			   "negedge I_rst_n")
 		       (cond (!I_rst_n
 			      (setf cnt_vs 0))
@@ -1176,9 +1158,8 @@
 			    (aref PIXDATA (slice 9 4))
 			    (aref PIXDATA (slice 9 5))))
 	    
-	    #+nil,@(loop for (e f g) in `((clk I_clk PIXCLK)
-				     (vs ~tp0_vs_in VSYNC) de data))
-	    ,@(loop for (e f g) in `((clk I_clk PIXCLK)
+	
+	    #+max ,@(loop for (e f g) in `((clk I_clk PIXCLK)
 				     (vs ~tp0_vs_in VSYNC)
 				     (de tp0_de_in HREF)
 				     (data (concat (aref tp0_data_r (slice 7 3))
@@ -1188,7 +1169,7 @@
 		    collect
 		    `(assign ,(format nil "ch0_vfb_~a_in" e)
 			     (? (<= cnt_vs "10'h1ff") ,f ,g)))
-	    #+nil 
+	    #-max
 	    ,@(loop for (e f) in `((clk PIXCLK)
 				   (vs VSYNC)
 				   (de HREF)
@@ -1280,8 +1261,7 @@
 						       (v_bporch 20)
 						       (v_res 720)
 						       (rd_hres 640)
-						       (rd_vres 480)
-						       )
+						       (rd_vres 480))
 				    appending
 				    `(,(make-keyword (format nil "I_~a" lhs))
 				      ,(format nil "16'd~a" rhs)))
@@ -1290,13 +1270,11 @@
 			    :O_rden syn_off0_re
 			    :O_de out_de
 			    :O_hs syn_off0_hs
-			    :O_vs syn_off0_vs
-			    ))
+			    :O_vs syn_off0_vs))
 	    "localparam N=5; // delay N clocks"
 	    ,@(loop for e in `((Pout_hs_dn "N-1")
 			       (Pout_vs_dn "N-1")
-			       (Pout_de_dn "N-1")
-			       )
+			       (Pout_de_dn "N-1"))
 		    collect
 		    (destructuring-bind (name &optional size default) e
 		      (format nil "reg ~@[[~a:0]~] ~a~@[ =~a~];" size name default)))

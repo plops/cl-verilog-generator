@@ -60,3 +60,5 @@ embflash erase, program, verify
 ERROR  (PR2017) : 'O_led[0]' cannot be placed according to constraint, for the location is a dedicated pin (MODE)
   #+end_example
   - Project->Configuration->Dual-Purpose Pin MODE as regular IO
+
+- hdl best practices for timing closure: https://www.youtube.com/watch?v=UGGkKZylJBo
