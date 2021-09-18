@@ -323,18 +323,18 @@
    `(module syn_gen
 	    (,@(loop for e in `((pxl_clk)
 				(rst_n)
-				(h_total :len 16)
-				(h_sync :len 16)
-				(h_bporch :len 16)
-				(h_res :len 16)
-				(v_total :len 16)
-				(v_sync :len 16)
-				(v_bporch :len 16)
-				(v_res :len 16)
-				(rd_hres :len 16)
-				(rd_vres :len 16)
-				(hs_pol ) ;; 0 .. negative polarity
-				(vs_pol )
+				#+nil ((h_total :len 16)
+				 (h_sync :len 16)
+				 (h_bporch :len 16)
+				 (h_res :len 16)
+				 (v_total :len 16)
+				 (v_sync :len 16)
+				 (v_bporch :len 16)
+				 (v_res :len 16)
+				 (rd_hres :len 16)
+				 (rd_vres :len 16)
+				 (hs_pol ) ;; 0 .. negative polarity
+				 (vs_pol ))
 				(rden :type "output reg")
 				(de :type "output reg")
 				(hs :type "output reg")
@@ -347,6 +347,23 @@
 				   "O")
 			       name)))
 	     )
+
+	    
+	    ,@(loop for (lhs rhs) in `((h_total 1650)
+				       (h_sync 40)
+				       (h_bporch 220)
+				       (h_res 1280)
+				       (v_total 750)
+				       (v_sync 5)
+				       (v_bporch 20)
+				       (v_res 720)
+				       (rd_hres 640)
+				       (rd_vres 480)
+				       (hs_pol 1)
+				       (vs_pol 1))
+		    collect
+		    (format nil "localparam I_~a = ~a;" lhs rhs))
+	    
 	  ,@(loop for e in `((V_cnt 15)
 			     (H_cnt 15))
 		  collect
@@ -1263,21 +1280,22 @@
 			   (syn_gen_inst
 			    :I_pxl_clk pix_clk
 			    :I_rst_n hdmi_rst_n
-			    ,@(loop for (lhs rhs) in `((h_total 1650)
-						       (h_sync 40)
-						       (h_bporch 220)
-						       (h_res 1280)
-						       (v_total 750)
-						       (v_sync 5)
-						       (v_bporch 20)
-						       (v_res 720)
-						       (rd_hres 640)
-						       (rd_vres 480))
-				    appending
-				    `(,(make-keyword (format nil "I_~a" lhs))
-				      ,(format nil "16'd~a" rhs)))
-			    :I_hs_pol "1'b1"
-			    :I_vs_pol "1'b1"
+			    #+nil ,@(append
+			       (loop for (lhs rhs) in `((h_total 1650)
+							 (h_sync 40)
+							 (h_bporch 220)
+							 (h_res 1280)
+							 (v_total 750)
+							 (v_sync 5)
+							 (v_bporch 20)
+							 (v_res 720)
+							 (rd_hres 640)
+							 (rd_vres 480))
+				      appending
+				      `(,(make-keyword (format nil "I_~a" lhs))
+					,(format nil "16'd~a" rhs)))
+			       `(:I_hs_pol "1'b1"
+				 :I_vs_pol "1'b1"))
 			    :O_rden syn_off0_re
 			    :O_de out_de
 			    :O_hs syn_off0_hs
