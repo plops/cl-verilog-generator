@@ -6,6 +6,7 @@
 
 (in-package :cl-tcl-generator)
 
+
 (progn
   (defparameter *path* "/home/martin/stage/cl-verilog-generator/examples/02_video")
   (write-source
@@ -13,9 +14,14 @@
    `(do0
      ;; clocks in timing constraints
      ,@(loop for (name period n fn) in
-	     `((I_clk 37.037 18.518 get_ports)
-	       (serial_clk 2.694 1.347 get_nets)
-	       (pix_clk 13.468 6.734 get_nets))
+	     `((I_clk ,(/ 1000 27.0) ;37.037
+		      18.518 get_ports)
+	       (serial_clk ,(/ 1000 371.195)
+					;2.694
+			   1.347 get_nets
+			   )
+	       (pix_clk ,(/ 1000 74.25) ;13.468
+			6.734 get_nets))
 	     collect
 	     ;; period, frequency MHz, rise time ns, fall time ns
 	     (format nil "create_clock -name ~a -period ~a -waveform {0 ~a} [~a {~a}] -add"
@@ -37,7 +43,8 @@
 			("O_tmds_data_p[1]" ((comma 32 31))  ("PULL_MODE=NONE" "DRIVE=3.5"))
 			("O_tmds_data_p[2]" ((comma 35 34))  ("PULL_MODE=NONE" "DRIVE=3.5"))
 			("XCLK"            (33)             ("IO_TYPE=LVCMOS25" "PULL_MODE=NONE" "DRIVE=8"))
-			("O_led[0]"        (10)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
+			#+max ("O_led[0]"        (10)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
+			#-max ("O_led"        (10)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
 			(SCL        (44)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
 			(SDA        (46)             ("IO_TYPE=LVCMOS33" "PULL_MODE=NONE" "DRIVE=8"))
 			(PIXCLK        (41)             ("IO_TYPE=LVCMOS33" "PULL_MODE=UP"))

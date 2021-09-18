@@ -1,9 +1,23 @@
-https://github.com/sipeed/TangNano-4K-example/tree/main/dk_video/project
-http://www.dragonwake.com/download/camera/ov2640/OV2640%20Camera%20Module%20Software%20Application%20Notes.pdf
-https://media.ccc.de/v/33c3-8057-dissecting_hdmi capture hdmi
-https://av.tib.eu/media/51913 gowin reverse engineer
-https://github.com/TerosTechnology/vscode-terosHDL verilog helper for vs code documentation with doxygen, wavedrom
-https://www.youtube.com/watch?v=sOKJWAnrbHM DesignStart FPGA 201: Designing Arm Cortex M3 with GOWIN FPGAs
+- copy files to other folder with project
+#+begin_example
+cp ~/stage/cl-verilog-generator/examples/02_video/source/*.{v,cst,sdc,ipc} /home/martin/gowin_fpga/b2/IDE/bin/fpga_project_xam/src
+# this folder to slim
+ rsync -avz /home/martin/gowin_fpga/b2/IDE/bin/fpga_project_xam slim:.
+#+end_example
+- update files on slim
+  #+begin_example
+rsync -avz  ~/stage/cl-verilog-generator/examples/02_video/source/*.{v,cst,sdc,ipc} slim:./fpga_project_xam/src
+  #+end_example
+-program from command line
+#+begin_example
+/mnt/gowin/Programmer/bin/programmer_cli -d GW1NSR-4C -r 2 --fsFile /home/martin/fpga_project_xam/impl/pnr/fpga_project_xam.fs
+# original example
+/mnt/gowin/Programmer/bin/programmer_cli -d GW1NSR-4C -r 2 --fsFile /home/martin/src/TangNano-4K-example/dk_video/project/impl/pnr/ao_0.fs
+# logic analyzer
+sudo chmod a+rw /dev/bus/usb/007/002
+/mnt/gowin/IDE/bin/gao_analyzer
+
+#+end_example
 - tang nano 4k
 - dmesg when plugging in:https://www.youtube.com/watch?v=D_xxLxWer0c USB2.0 Soft IP: An Introduction to GOWIN Semiconductor's USB Solution for FPGA's
  #+begin_example
@@ -43,6 +57,12 @@ select led test fs file
   #+end_example
 
 - store video fs with persistance
+https://github.com/sipeed/TangNano-4K-example/tree/main/dk_video/project
+http://www.dragonwake.com/download/camera/ov2640/OV2640%20Camera%20Module%20Software%20Application%20Notes.pdf
+https://media.ccc.de/v/33c3-8057-dissecting_hdmi capture hdmi
+https://av.tib.eu/media/51913 gowin reverse engineer
+https://github.com/TerosTechnology/vscode-terosHDL verilog helper for vs code documentation with doxygen, wavedrom
+https://www.youtube.com/watch?v=sOKJWAnrbHM DesignStart FPGA 201: Designing Arm Cortex M3 with GOWIN FPGAs
 #+begin_example
 device config
 embedded flash mode
