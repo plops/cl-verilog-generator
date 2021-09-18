@@ -11,7 +11,7 @@ rsync -avz  ~/stage/cl-verilog-generator/examples/02_video/source/*.{v,cst,sdc,i
 -program from command line
 #+begin_example
 /mnt/gowin/Programmer/bin/programmer_cli -d GW1NSR-4C -r 2 --fsFile /home/martin/fpga_project_xam/impl/pnr/fpga_project_xam.fs
-# original example
+# original example 
 /mnt/gowin/Programmer/bin/programmer_cli -d GW1NSR-4C -r 2 --fsFile /home/martin/src/TangNano-4K-example/dk_video/project/impl/pnr/ao_0.fs
 # logic analyzer
 sudo chmod a+rw /dev/bus/usb/007/002
