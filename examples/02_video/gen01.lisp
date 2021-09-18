@@ -474,7 +474,7 @@
 					 ,(format nil "1'b~a" f))))
 			 (setf O_de Pout_de_dn
 			       O_hs (? I_hs_pol ~Pout_hs_dn Pout_hs_dn)
-			       O_hs (? I_vs_pol ~Pout_vs_dn Pout_vs_dn)
+			       O_vs (? I_vs_pol ~Pout_vs_dn Pout_vs_dn)
 			       O_rden Rden_dn)))))
 
   ;; https://www.uctronics.com/download/cam_module/OV2640DS.pdf v.1.6
