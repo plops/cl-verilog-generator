@@ -5,6 +5,8 @@
 
 ;; register parser for ov2640 camera
 
+;; OV2640_DS.pdf
+;; OV2640 Camera Module Software Application Notes.pdf
 
 (progn
   (defparameter *path* "/home/martin/stage/cl-verilog-generator/examples/02_video")
@@ -410,12 +412,14 @@
 							       (count v vars-s))))
 		      ;; rsvd 15x, hsize 3x
 		      
-		      `(setf dfv (pd.DataFrame (dictionary :var (list ,@(mapcar #'(lambda (x)
-										    `(string ,x))
-										vars-u))
-							   :count (list ,@vars-u-count)
-							   )
-					       )))))
+		      `(do0
+			(comments "listing of all configuration variables. some of them are completely stored in a single byte of the register file others are split across up to 3 different bytes.")
+			(setf dfv (pd.DataFrame (dictionary :var (list ,@(mapcar #'(lambda (x)
+										     `(string ,x))
+										 vars-u))
+							    :splits (list ,@vars-u-count)
+							    )
+						))))))
 	      ))
 	   
 	   ))
