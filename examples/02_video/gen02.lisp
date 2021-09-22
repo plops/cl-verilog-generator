@@ -5,7 +5,7 @@
 
 ;; register parser for ov2640 camera
 
-;; OV2640_DS.pdf
+;; OV2640_DS.pdf v2.2 2007-02-23
 ;; OV2640 Camera Module Software Application Notes.pdf
 
 (progn
