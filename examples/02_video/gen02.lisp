@@ -21,6 +21,12 @@
        (print (dot (string ,(format nil "{} ~a ~{~a={}~^ ~}" cmd rest))
 		   (format (- (time.time) start_time)
 			   ,@rest)))))
+  (defun all-positions (needle haystack)
+    "https://stackoverflow.com/questions/4439326/position-of-all-matching-elements-in-list"
+    (loop for el in haystack
+	  and pos from 0
+	  when (eql el needle)
+	    collect pos))
   (let* ((l-dsp
 	   `((0 rsvd)
 	     (5 r-bypass 1 rw (((7 1) rsvd)
@@ -382,7 +388,8 @@
 	     
 	      ,(let ((names)
 		     (addresses)
-		     (vars))
+		     (vars)
+		     (all-data))
 		 (loop for e in l-dsp
 		       do
 			  (destructuring-bind (address reg-name
@@ -399,7 +406,13 @@
 					 (let ((var-name (if (listp var-spec)
 							     (second var-spec)
 							     var-spec)))
-					   (setf vars (append vars (list var-name)))))))))
+					   (setf vars (append vars (list var-name)))
+					   (setf all-data (append all-data `(((address ,address_)
+									      (default ,default_)
+									      (permission ,permission)
+									      (var-name ,var-name)
+									      (var-pos ,pos)
+									      (sub-var-spec ,sub-var-specs)))))))))))
 		 `(do0
 		   (setf df (pd.DataFrame (dictionary :name (list ,@(mapcar #'(lambda (x)
 										`(string ,x))
@@ -411,7 +424,9 @@
 			   (vars-u-count (loop for v in vars-u collect
 							       (count v vars-s))))
 		      ;; rsvd 15x, hsize 3x
-		      
+		      (defparameter *bla* (list names addresses vars-u)
+			)
+		      (defparameter *bla2* all-data)
 		      `(do0
 			(comments "listing of all configuration variables. some of them are completely stored in a single byte of the register file others are split across up to 3 different bytes.")
 			(setf dfv (pd.DataFrame (dictionary :var (list ,@(mapcar #'(lambda (x)
@@ -419,9 +434,27 @@
 										 vars-u))
 							    :splits (list ,@vars-u-count)
 							    )
-						))))))
-	      ))
-	   
-	   ))
+						))
+			(class OV2640 ()
+			  
+			  
+			  (def __init__ (self)
+			    (setf self.register_file (np.zeros (list 2 256) :dtype np.uint8)))
+			  ,@(loop for var in vars-u
+				  unless (eql var 'rsvd)
+				  collect
+				  `(do0
+				    (do0
+				     "@property"
+				     (def ,var (self)
+				       (comments ,(format nil "~{~a~^,~}"
+							 (all-positions var vars))))
+				     )
+				    #+nil (do0
+				     ,(format nil "@~a.setter" var)
+				     (def ,var (self)))))
+			  )))
+		   
+		   (setf ov (OV2640))))))))
     (write-source (format nil "~a/~a" *source* *code-file*) code)
     ))
