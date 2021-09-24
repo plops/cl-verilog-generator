@@ -408,6 +408,7 @@
 							     var-spec)))
 					   (setf vars (append vars (list var-name)))
 					   (setf all-data (append all-data `(((address ,address_)
+									      (reg-name ,reg-name)
 									      (default ,default_)
 									      (permission ,permission)
 									      (var-name ,var-name)
@@ -435,26 +436,37 @@
 							    :splits (list ,@vars-u-count)
 							    )
 						))
-			(class OV2640 ()
+			(do0
+			 (comments "all variables (either full register or part)")
+			 (setf dfr (pd.DataFrame (dict ,@(loop for e in `(address reg-name default permission var-name var-pos)
+							       collect
+							       `((string ,e)
+								 (list
+								  ,@(mapcar #'(lambda (x)
+										(let ((v (cadr (assoc e x))))
+										  `(string ,v)))
+									    all-data))))))))
+			#+nil (do0
+			 (class OV2640 ()
 			  
 			  
-			  (def __init__ (self)
-			    (setf self.register_file (np.zeros (list 2 256) :dtype np.uint8)))
-			  ,@(loop for var in vars-u
-				  unless (eql var 'rsvd)
-				  collect
-				  `(do0
-				    (do0
-				     "@property"
-				     (def ,var (self)
-				       (comments ,(format nil "~{~a~^,~}"
-							 (all-positions var vars))))
-				     )
-				    #+nil (do0
-				     ,(format nil "@~a.setter" var)
-				     (def ,var (self)))))
-			  )))
+				(def __init__ (self)
+				  (setf self.register_file (np.zeros (list 2 256) :dtype np.uint8)))
+				,@(loop for var in vars-u
+					unless (eql var 'rsvd)
+					  collect
+					`(do0
+					  (do0
+					   "@property"
+					   (def ,var (self)
+					     (comments ,(format nil "~{~a~^,~}"
+								(all-positions var vars))))
+					   )
+					  #+nil (do0
+						 ,(format nil "@~a.setter" var)
+						 (def ,var (self)))))
+				))))
 		   
-		   (setf ov (OV2640))))))))
+		   #+nil (setf ov (OV2640))))))))
     (write-source (format nil "~a/~a" *source* *code-file*) code)
     ))
