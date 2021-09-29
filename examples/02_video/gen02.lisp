@@ -27,6 +27,15 @@
 	  and pos from 0
 	  when (eql el needle)
 	    collect pos))
+  (defun lookup (all-data var-name)
+    (find-if #'(lambda (x)
+		 (eq var-name
+		     (cadr
+		      (assoc 'var_name
+			     x))))
+	     all-data))
+  (defun column (row name)
+    (cadr (assoc name row)))
   (let* ((l-dsp
 	   `((0 rsvd)
 	     (5 r-bypass 1 rw (((7 1) rsvd)
@@ -378,13 +387,24 @@
 	     (setf start_time (time.time)
 		   debug True)
 
+	     (do0
+	      (pd.set_option
+	       (string "display.max_rows")
+	       None
+	       (string "display.max_columns")
+	       None
+	       (string "display.width")
+	       1000))
 
 	     (do0
 	      
 	      #+nil
 	      ((0 rsvd)
 	       (5 r-bypass 1 rw (((7 1) rsvd)
-				 ((0) bypass-dsp-select ((0 dsp) (1 bypass))))))
+				 ((0) bypass-dsp-select ((0 dsp) (1 bypass)))))
+	       (10 aec 33 rw (((7 0) (aref aec (slice 9 2)))))
+	       (45 reg45 0 rw (((7 6) (aref agc (slice 9 8)))
+			       ((5 0) (aref aec (slice 15 10))))))
 	     
 	      ,(let ((names)
 		     (addresses)
@@ -403,17 +423,46 @@
 			      (loop for part in parts
 				    do
 				       (destructuring-bind (pos var-spec &optional sub-var-specs) part
-					 (let ((var-name (if (listp var-spec)
-							     (second var-spec)
-							     var-spec)))
+					 (let* ((var-name (if (listp var-spec)
+							      (second var-spec)
+							      var-spec))
+						(var-start -1)
+						(var-end -1)
+						(pos-start (if (eq 2 (length pos))
+							       (second pos)
+							       (first pos)))
+						(pos-end (if (eq 2 (length pos))
+							     (first pos)
+							     (first pos)))
+						(var-bits (+ 1 (- pos-end pos-start))))
 					   (setf vars (append vars (list var-name)))
+					   (progn
+					     ;; parse aref and slice
+					    (if (listp var-spec)
+						(destructuring-bind (aref-call var-name aref-args) var-spec
+						  (if (listp aref-args)
+						      (destructuring-bind (slice-call s-end s-start) aref-args
+							(setf var-start s-start
+							      var-end s-end))
+						      (setf var-start aref-args
+							    var-end aref-args))
+						  )
+						(progn
+						  ;; no aref
+						  (setf var-start 0
+							var-end (- var-bits 1)))))
 					   (setf all-data (append all-data `(((address ,address_)
-									      (reg-name ,reg-name)
+									      (reg_name ,reg-name)
 									      (default ,default_)
 									      (permission ,permission)
-									      (var-name ,var-name)
-									      (var-pos ,pos)
-									      (sub-var-spec ,sub-var-specs)))))))))))
+									      (var_name ,var-name)
+									      ;(var_pos ,pos)
+									      (var_pos_start ,pos-start)
+									      (var_pos_end ,pos-end)
+									      (var_start ,var-start)
+									      (var_end ,var-end)
+									      (var_bits ,var-bits)
+									      (sub_var_spec ,sub-var-specs)))))))))))
 		 `(do0
 		   (setf df (pd.DataFrame (dictionary :name (list ,@(mapcar #'(lambda (x)
 										`(string ,x))
@@ -425,10 +474,12 @@
 			   (vars-u-count (loop for v in vars-u collect
 							       (count v vars-s))))
 		      ;; rsvd 15x, hsize 3x
-		      (defparameter *bla* (list names addresses vars-u)
-			)
+		      (defparameter *bla* (list names addresses vars-u))
+		      (defparameter *vars-u* vars-u)
+		      (defparameter *all-data* all-data)
 		      (defparameter *bla2* all-data)
 		      `(do0
+
 			(comments "listing of all configuration variables. some of them are completely stored in a single byte of the register file others are split across up to 3 different bytes.")
 			(setf dfv (pd.DataFrame (dictionary :var (list ,@(mapcar #'(lambda (x)
 										     `(string ,x))
@@ -437,36 +488,68 @@
 							    )
 						))
 			(do0
-			 (comments "all variables (either full register or part)")
-			 (setf dfr (pd.DataFrame (dict ,@(loop for e in `(address reg-name default permission var-name var-pos)
+			 (comments "all variables (either full register or part), don't list rsvd")
+			 (setf dfr (pd.DataFrame (dict ,@(loop for e in `(address reg_name default permission var_name
+										  var_start
+										  var_end
+										  var_pos_start var_pos_end var_bits)
 							       collect
 							       `((string ,e)
 								 (list
 								  ,@(mapcar #'(lambda (x)
 										(let ((v (cadr (assoc e x))))
 										  `(string ,v)))
-									    all-data))))))))
-			#+nil (do0
+									    (remove-if #'(lambda (x)
+											   (or (eq 'rsvd (cadr (assoc 'reg_name x)))
+											       (eq 'rsvd (cadr (assoc 'var_name x)))))
+										       all-data)))))))))
+			(do0
 			 (class OV2640 ()
 			  
-			  
+				
 				(def __init__ (self)
 				  (setf self.register_file (np.zeros (list 2 256) :dtype np.uint8)))
+				;; each unique variable name that is not rsvd is found in all-data and the data is decoded 
 				,@(loop for var in vars-u
 					unless (eql var 'rsvd)
 					  collect
-					`(do0
-					  (do0
-					   "@property"
-					   (def ,var (self)
-					     (comments ,(format nil "~{~a~^,~}"
-								(all-positions var vars))))
-					   )
-					  #+nil (do0
-						 ,(format nil "@~a.setter" var)
-						 (def ,var (self)))))
+					(let ((row (lookup all-data var)))
+					 `(do0
+					   (do0
+					    "@property"
+					    (def ,var (self)
+					      (comments ,(format nil "~{~a~^,~}"
+								 (all-positions var vars))))
+					    )
+					   #+nil (do0
+						  ,(format nil "@~a.setter" var)
+						  (def ,var (self))))))
 				))))
 		   
 		   #+nil (setf ov (OV2640))))))))
     (write-source (format nil "~a/~a" *source* *code-file*) code)
     ))
+
+
+(lookup *all-data* (elt *all-data* 12))
+
+(mapcar #'(lambda (x)
+	     (cadr
+	      (assoc 'var_name
+		     x)))
+	 *all-data*)
+
+(let ((var-name 'h-size))
+ (find-if #'(lambda (x)
+	      (eq var-name
+		  (cadr
+		   (assoc 'var_name
+			  x))))
+	  *all-data*))
+
+
+
+(eq 
+ (cadr
+  (assoc 'var_name
+	 (elt *all-data* 12))))
