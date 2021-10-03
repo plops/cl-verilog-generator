@@ -410,9 +410,15 @@
 		     (addresses)
 		     (vars)
 		     (all-data))
-		 (loop for e in l-dsp
+		 (loop for e in (append (loop for el in l-dsp
+					      collect
+					      `(dsp ,@el))
+					(loop for el in l-sensor
+					      collect
+					      `(sensor ,@el))
+					)
 		       do
-			  (destructuring-bind (address reg-name
+			  (destructuring-bind (bank address reg-name
 					       &optional default permission
 						 parts) e
 			    (let ((address_ (read-from-string (format nil "#x~a" address)))
@@ -451,7 +457,8 @@
 						  ;; no aref
 						  (setf var-start 0
 							var-end (- var-bits 1)))))
-					   (setf all-data (append all-data `(((address ,address_)
+					   (setf all-data (append all-data `(((bank ,bank)
+									      (address ,address_)
 									      (reg_name ,reg-name)
 									      (default ,default_)
 									      (permission ,permission)
@@ -513,13 +520,28 @@
 				,@(loop for var in vars-u
 					unless (eql var 'rsvd)
 					  collect
-					(let ((row (lookup all-data var)))
+					  (let* ((row (lookup all-data var))
+						 (var_ (substitute #\_ #\- (format nil "~a" var)))
+						 (bank (column row 'bank))
+						 (bank-id (if (eq bank 'dsp)
+							      0 1))
+						 (address (column row 'address))
+						 (var_pos_start (column row 'var_pos_start))
+						 (var_pos_end (column row 'var_pos_end))
+						 (var_start (column row 'var_start))
+						 (var_end (column row 'var_end))
+						 (var_bits (column row 'var_bits))
+						 )
+					    ;; bank address reg_name default permission var_name var_pos_start var_pos_end var_start var_end var_bits sub_var_spec
 					 `(do0
 					   (do0
 					    "@property"
-					    (def ,var (self)
+					    (def ,var_ (self)
 					      (comments ,(format nil "~{~a~^,~}"
-								 (all-positions var vars))))
+								 (all-positions var vars)))
+					      (setf r0 (bin (aref self.register_file ,bank-id ,address))
+						    r1 (aref r0 (slice var_pos_start
+								       var_pos_end))))
 					    )
 					   #+nil (do0
 						  ,(format nil "@~a.setter" var)
@@ -532,7 +554,7 @@
 
 
 (lookup *all-data* (elt *all-data* 12))
-
+(column )
 (mapcar #'(lambda (x)
 	     (cadr
 	      (assoc 'var_name
