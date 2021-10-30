@@ -21,12 +21,13 @@
        (print (dot (string ,(format nil "{} ~a ~{~a={}~^ ~}" cmd rest))
 		   (format (- (time.time) start_time)
 			   ,@rest)))))
-  (defun all-positions (needle haystack)
+  (defun all-positions (cmp haystack)
     "https://stackoverflow.com/questions/4439326/position-of-all-matching-elements-in-list"
     (loop for el in haystack
 	  and pos from 0
-	  when (eql el needle)
+	  when (funcall cmp el) ;(eql el needle)
 	    collect pos))
+  
   (defun lookup (all-data var-name)
     (find-if #'(lambda (x)
 		 (eq var-name
@@ -36,6 +37,12 @@
 	     all-data))
   (defun column (row name)
     (cadr (assoc name row)))
+  (defun lookup-all (all-data var-name)
+    (loop for row in all-data
+	  and pos from 0
+	  when (eq var-name
+		   (column row 'var_name))
+	    collect pos))
   (let* ((l-dsp
 	   `((0 rsvd)
 	     (5 r-bypass 1 rw (((7 1) rsvd)
@@ -520,28 +527,44 @@
 				,@(loop for var in vars-u
 					unless (eql var 'rsvd)
 					  collect
-					  (let* ((row (lookup all-data var))
-						 (var_ (substitute #\_ #\- (format nil "~a" var)))
-						 (bank (column row 'bank))
-						 (bank-id (if (eq bank 'dsp)
-							      0 1))
-						 (address (column row 'address))
-						 (var_pos_start (column row 'var_pos_start))
-						 (var_pos_end (column row 'var_pos_end))
-						 (var_start (column row 'var_start))
-						 (var_end (column row 'var_end))
-						 (var_bits (column row 'var_bits))
-						 )
-					    ;; bank address reg_name default permission var_name var_pos_start var_pos_end var_start var_end var_bits sub_var_spec
+					(let ((var_ (substitute #\_ #\- (format nil "~a" var))))
+					 ;; bank address reg_name default permission var_name var_pos_start var_pos_end var_start var_end var_bits sub_var_spec
 					 `(do0
 					   (do0
 					    "@property"
 					    (def ,var_ (self)
-					      (comments ,(format nil "~{~a~^,~}"
-								 (all-positions var vars)))
-					      (setf r0 (bin (aref self.register_file ,bank-id ,address))
-						    r1 (aref r0 (slice var_pos_start
-								       var_pos_end))))
+					      #+nil (comments ,(format nil "~{~a~^,~}"
+								       (all-positions (lambda (x) (eq x var)) vars)))
+					      ,(let ((all-pos (lookup-all all-data var) ;(all-positions (lambda (x) (eq x var)) vars)
+						       ))
+						 `(do0
+						   ,@(loop for p in all-pos
+							   and pi_ from 0
+							   collect
+							   (let*  ((r0 (format nil "r~a_0" pi_))
+								   (r1 (format nil "r~a_1" pi_))
+								   (row (elt all-data p)
+									;; (lookup all-data var)
+									)
+								   (bank (column row 'bank))
+								   (bank-id (if (eq bank 'dsp)
+										0 1))
+								   (address (column row 'address))
+								   (var_name (column row 'var_name))
+								   (var_pos_start (column row 'var_pos_start))
+								   (var_pos_end (column row 'var_pos_end))
+								   (var_start (column row 'var_start))
+								   (var_end (column row 'var_end))
+								   (var_bits (column row 'var_bits))
+								   )
+							     `(do0
+							       (comments ,(format nil "~a bank=~a" (list var all-pos p var_name) bank)
+									 ,(format nil "address=~a" address))
+							       (setf ,r0
+									(bin (aref self.register_file ,bank-id ,address))
+									,r1 (int (aref ,r0 (slice ,var_pos_start
+												  ,var_pos_end))
+										 2))))))))
 					    )
 					   #+nil (do0
 						  ,(format nil "@~a.setter" var)
@@ -553,7 +576,9 @@
     ))
 
 
-(lookup *all-data* (elt *all-data* 12))
+(lookup *all-data* 
+
+	(column (elt *all-data* 12) 'var_name))
 (column )
 (mapcar #'(lambda (x)
 	     (cadr

@@ -82,3 +82,10 @@ ERROR  (PR2017) : 'O_led[0]' cannot be placed according to constraint, for the l
   - Project->Configuration->Dual-Purpose Pin MODE as regular IO
 
 - hdl best practices for timing closure: https://www.youtube.com/watch?v=UGGkKZylJBo
+
+
+- Related Documents
+  - https://justanotherelectronicsblog.com/?p=986
+    - 2021-10-19
+    - Sipeed Tang 4K ramblings
+    
