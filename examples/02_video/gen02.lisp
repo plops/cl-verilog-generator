@@ -569,7 +569,14 @@
 					   #+nil (do0
 						  ,(format nil "@~a.setter" var)
 						  (def ,var (self))))))
-				))))
+				))
+
+			(do0
+			 (print
+			  (string3 "df        .. register name and address
+dfv       .. register sub variables and number of occurances in register file
+dfr       .. bit positions for all register sub variables
+OV2640    .. (class) parse register initializing sequence dump, use load to open from csv " )))))
 		   
 		   #+nil (setf ov (OV2640))))))))
     (write-source (format nil "~a/~a" *source* *code-file*) code)
