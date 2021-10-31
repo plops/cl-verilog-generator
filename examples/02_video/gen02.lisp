@@ -571,11 +571,13 @@
 						  (def ,var (self))))))
 				))
 
+			(setf dfl (pd.read_csv (string "ov2640_init_rom.csv")))
 			(do0
 			 (print
 			  (string3 "df        .. register name and address
 dfv       .. register sub variables and number of occurances in register file
 dfr       .. bit positions for all register sub variables
+dfl       .. register init sequence
 OV2640    .. (class) parse register initializing sequence dump, use load to open from csv " )))))
 		   
 		   #+nil (setf ov (OV2640))))))))

@@ -101,3 +101,13 @@ ERROR  (PR2017) : 'O_led[0]' cannot be placed according to constraint, for the l
         then deal with it and magically connect it to the RAM, neat.
   - http://www.clifford.at/papers/2017/smtbmc-sby/
     - formal verificatin with symbiyosys and yosys-smtbmc
+
+- python program gen02
+  - synopsis:
+    - represent register file of camera
+    - allow loading default register settings
+    - parse limited commands (e.g. reset, switch register bank) and
+      modify register file
+    - read individual register variables from the register file
+    - help to understand/visualize/optimize a camera register
+      initialization sequence
