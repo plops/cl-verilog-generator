@@ -576,6 +576,16 @@
 			  (D7 03) (E1 77) (E0 00)    
 			  )
 			))
+		(with-open-file (s "/home/martin/stage/cl-verilog-generator/examples/02_video/source/ov2640_init_rom.csv"
+				   :direction :output
+				   :if-exists :supersede
+				   :if-does-not-exist :create)
+		  (format s "idx,addr,val~%")
+		  (loop for (e f) in l
+			and i from 0
+			do
+			   (format s "~a,0x~a,0x~a~%" i e f)
+			))
 		`(case address
 		   ,@(loop for (e f) in l
 			   and i from 0

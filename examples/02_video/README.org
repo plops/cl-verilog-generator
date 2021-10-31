@@ -88,4 +88,16 @@ ERROR  (PR2017) : 'O_led[0]' cannot be placed according to constraint, for the l
   - https://justanotherelectronicsblog.com/?p=986
     - 2021-10-19
     - Sipeed Tang 4K ramblings
-    
+    -  https://github.com/riktw/tang4Kramblings
+    - 4K not possible
+    - http://searle.x10host.com/Multicomp/index.html 6502
+    - https://github.com/projf/display_controller hdmi display code
+      - porting guide https://github.com/projf/display_controller/blob/master/doc/porting.md
+      - 10:1 serialization for HDMI
+    - https://github.com/AndresNavarro82/vt52-fpga serial
+    - https://www.winbond.com/resource-files/W956x8MBYA_64Mb_HyperBus_pSRAM_TFBGA24_datasheet_A01-003_20200724.pdf hyperram datasheet
+      - In order to connect to the RAM, the top level should have the
+        ports for the RAM with the correct names. The synthesizer will
+        then deal with it and magically connect it to the RAM, neat.
+  - http://www.clifford.at/papers/2017/smtbmc-sby/
+    - formal verificatin with symbiyosys and yosys-smtbmc
