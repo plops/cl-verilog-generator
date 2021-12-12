@@ -4,7 +4,10 @@ https://github.com/litex-hub/litex-boards
 sudo dnf install verilator json-c-devel libevent-devel
 git clone https://github.com/enjoy-digital/litex
 ./litex_setup.py --init --install --user
+./litex_setup.py --user --gcc riscv
 cd ../litex-boards/litex_boards/targets
+export PATH=$PATH:~/src/riscv64-unknown-elf-gcc-8.3.0-2019.08.0-x86_64-linux-centos6/bin/
+
 ./sipeed_tang_nano_4k.py --cpu-variant=minimal 
 
 #+end_example
