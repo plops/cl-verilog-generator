@@ -13,3 +13,6 @@ export PATH=$PATH:~/src/riscv64-unknown-elf-gcc-8.3.0-2019.08.0-x86_64-linux-cen
 #+end_example
 
 https://github.com/trabucayre/openFPGALoader
+
+- seems like i need to add an external uart to talk to riscv on tang 4k:
+  https://twitter.com/enjoy_digital/status/1438904794115104772
