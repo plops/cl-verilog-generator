@@ -3,6 +3,10 @@ https://github.com/litex-hub/litex-boards
 #+begin_example
 sudo dnf install verilator json-c-devel libevent-devel
 git clone https://github.com/enjoy-digital/litex
-./litex_setup.py --init --install --user 
+./litex_setup.py --init --install --user
+cd ../litex-boards/litex_boards/targets
+./sipeed_tang_nano_4k.py --cpu-variant=minimal 
+
 #+end_example
 
+https://github.com/trabucayre/openFPGALoader
