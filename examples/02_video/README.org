@@ -111,3 +111,14 @@ ERROR  (PR2017) : 'O_led[0]' cannot be placed according to constraint, for the l
     - read individual register variables from the register file
     - help to understand/visualize/optimize a camera register
       initialization sequence
+
+
+- gowin license
+  #+begin_example
+Sipeed
+@SipeedIO
+·
+Nov 5
+Just upgrade Gowin Floating License, now support 200 user online at the same time~
+You can use floating license instead apply a standalone lic: 45.33.107.56:10559
+  #+end_example
