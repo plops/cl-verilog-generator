@@ -16,3 +16,5 @@ https://github.com/trabucayre/openFPGALoader
 
 - seems like i need to add an external uart to talk to riscv on tang 4k:
   https://twitter.com/enjoy_digital/status/1438904794115104772
+  - fpga uart of tang 4k is on CAM_SCL/SDA pins
+  - tang nano 9k will have uart via usb
