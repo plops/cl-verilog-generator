@@ -1,0 +1,8 @@
+- litex should support tang nano 4k
+https://github.com/litex-hub/litex-boards
+#+begin_example
+sudo dnf install verilator json-c-devel libevent-devel
+git clone https://github.com/enjoy-digital/litex
+./litex_setup.py --init --install --user 
+#+end_example
+
